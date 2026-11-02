@@ -1,0 +1,12 @@
+description "Compatibility forwarding shim for Core/Ext\377";
+
+uses
+	Core/Ext;
+
+file
+	TextParsing.h,
+	Html.h,
+	String.h,
+	Tokenizer.h,
+	TokenParser.h,
+	Url.h;

@@ -1,0 +1,11 @@
+description "Compatibility forwarding shim for Core/Ext\377";
+
+uses
+	Core/Ext;
+
+file
+	MathNumeric.h,
+	CKMeans.h,
+	DCT.h,
+	Math.h,
+	Random.h;

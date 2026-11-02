@@ -1,0 +1,26 @@
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /yhteinen/active/sblo/Dev/ultimatepp/uppsrc/Core/Core.h applied-patches/Core/Core.h
+--- a/Core.h	2026-10-31 17:16:38.853507600 +0200
++++ b/Core.h	2026-11-01 22:34:18.812644800 +0200
+@@ -420,6 +420,9 @@
+ 
+ }
+ 
++// Bazaar Core Extensions
++#include <Core/Ext/Ext.h>
++
+ #if (defined(TESTLEAKS) || defined(HEAPDBG)) && defined(COMPILER_GCC) && defined(UPP_HEAP)
+ 
+ //Place it to the begining of each file to be the first function called in whole executable...
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /yhteinen/active/sblo/Dev/ultimatepp/uppsrc/Core/Core.upp applied-patches/Core/Core.upp
+--- a/Core.upp	2026-10-31 17:16:38.853507600 +0200
++++ b/Core.upp	2026-11-01 22:34:18.813644800 +0200
+@@ -38,6 +38,9 @@
+ 
+ external_dependency(RPM) "zlib-ng-compat-devel|zlib-devel lz4-devel xxhash-devel pcre2-devel";
+ 
++uses
++	Core/Ext;
++
+ file
+ 	Core.h options(BUILDER_OPTION) PCH,
+ 	config.h,

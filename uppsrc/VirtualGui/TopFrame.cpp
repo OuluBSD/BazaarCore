@@ -1,0 +1,343 @@
+#include "Local.h"
+
+#ifdef VIRTUALGUI
+
+#ifdef flagTUI
+#include <CtrlCore/TuiLook.h>
+#include <CtrlCore/TuiTerminal.h>
+#endif
+
+NAMESPACE_UPP
+
+#define LLOG(x)  // LOG(x)
+#define LDUMP(x) //DDUMP(x)
+
+TopWindowFrame::TopWindowFrame()
+{
+#ifdef flagTUI
+	close.SetLabel(WString((wchar)0x00D7, 1).ToString()); // "×"
+	maximize.SetLabel(WString((wchar)0x25A1, 1).ToString()); // "□"
+	border_policy = CHBORDER_GRAPHIC;
+#else
+	close.SetImage(FBImg::close());
+	close.EdgeStyle();
+	maximize.SetImage(FBImg::maximize());
+	maximize.EdgeStyle();
+	border_policy = 0;
+#endif
+	Add(close);
+	Add(maximize);
+	maximize <<= THISBACK(ToggleMaximize);
+	maximized = false;
+	sizeable = false;
+	holding = false;
+	window = nullptr;
+}
+
+void TopWindowFrame::SyncRect()
+{
+	if(maximized) {
+		Size sz = GetWorkArea().GetSize();
+		if(GetRect().GetSize() != sz)
+			SetRect(sz);
+	}
+}
+
+void TopWindowFrame::Maximize()
+{
+	if(!maximized && maximize.IsShown()) {
+		maximized = true;
+		overlapped = GetRect();
+		SetRect(GetWorkArea().GetSize());
+		maximize.SetImage(FBImg::overlap());
+	}
+}
+
+void TopWindowFrame::Overlap()
+{
+	if(maximized && maximize.IsShown()) {
+		maximized = false;
+		SetRect(overlapped);
+		maximize.SetImage(FBImg::maximize());
+	}
+}
+
+void TopWindowFrame::ToggleMaximize()
+{
+	if(maximized)
+		Overlap();
+	else
+		Maximize();
+}
+
+// Whether the current backend (VirtualGuiPtr) wants VirtualGui's own generic
+// TopWindowFrame chrome (title bar + border) painted at all. False for NetDpy
+// (NetworkDisplay/0010): its host, DisplayServer, already draws a real, interactive
+// outer frame, so painting a second one here would double-frame every window.
+// True for everything else (Turtle included) -- unchanged, existing behavior.
+static bool sWantsOwnWindowFrame()
+{
+	return !VirtualGuiPtr || VirtualGuiPtr->WantsOwnWindowFrame();
+}
+
+// The title-bar text row height Paint()/Layout() reserve above Margins() -- also zero
+// when chrome is suppressed, so GetClient()/ComputeClient() don't leave a residual,
+// unpainted gap between the (now zero-margin) frame rect and the window it hosts.
+static int sTitleBarHeight()
+{
+	if(!sWantsOwnWindowFrame())
+		return 0;
+#ifdef flagTUI
+	return 0;
+#else
+	return GetStdFontCy() + 4;
+#endif
+}
+
+Rect TopWindowFrame::Margins() const
+{
+	if(!sWantsOwnWindowFrame())
+		return Rect(0, 0, 0, 0);
+	if(maximized)
+		return Rect(0, 0, 0, 0);
+#ifdef flagTUI
+	int policy = border_policy;
+	if(policy == CHBORDER_GRAPHIC) {
+		Size cell = TuiCellSize();
+		return Rect(cell.cx, cell.cy, cell.cx, cell.cy);
+	}
+	if(policy == CHBORDER_PAPER) {
+		Size cell = TuiCellSize();
+		return Rect(0, cell.cy, 0, 0);
+	}
+	return Rect(0, 0, 0, 0);
+#else
+	return ChMargins(FBImg::border());
+#endif
+}
+
+void TopWindowFrame::Paint(Draw& w)
+{
+	if(!sWantsOwnWindowFrame())
+		return;
+	Size sz = GetSize();
+	Rect m = Margins();
+#ifdef flagTUI
+	Size cell = TuiCellSize();
+	bool active = window && window->IsOpen() && window->IsForeground();
+	int policy = border_policy;
+	if(!active && policy == CHBORDER_GRAPHIC)
+		policy = CHBORDER_PAPER;
+
+	if(policy == CHBORDER_GRAPHIC) {
+		TuiPaintBoxBorder(w, sz, active ? SColorHighlight() : SColorShadow());
+	}
+	else if(policy == CHBORDER_PAPER) {
+		w.DrawRect(Rect(0, 0, sz.cx, cell.cy), active ? SColorHighlight() : SColorFace());
+	}
+
+	int tx = cell.cx;
+	int btn_count = close.IsShown() + maximize.IsShown();
+	int tcx = sz.cx - cell.cx * 2 - btn_count * cell.cx * 3;
+	Color titleColor = active ? SColorHighlightText() : SColorShadow();
+	DrawTextEllipsis(w, tx, 0, tcx, title, "..", StdFont(), titleColor);
+#else
+	int c = GetStdFontCy() + 4;
+	ChPaintEdge(w, sz, FBImg::border());
+	ChPaint(w, m.left, m.top, sz.cx - m.left - m.right, c,
+	        window->IsForeground() ? FBImg::title() : FBImg::bgtitle());
+	int tx = m.left + 2;
+	int tcx = sz.cx - m.left - m.right - 4 - c * (close.IsShown() + maximize.IsShown());
+	if(!IsNull(icon)) {
+		Image h = icon;
+		if(h.GetWidth() > c || h.GetHeight() > c)
+			h = Rescale(h, GetFitSize(h.GetSize(), Size(c, c)));
+		w.DrawImage(tx, m.top + 2, h);
+		tx += c;
+		tcx -= c;
+	}
+	DrawTextEllipsis(w, tx, m.top + 2, tcx, title, "..", StdFont(), SColorHighlightText());
+#endif
+}
+
+void TopWindowFrame::Layout()
+{
+	if(!sWantsOwnWindowFrame()) {
+		// No chrome painted (Margins() is zero too), so close/maximize would
+		// otherwise float, unpositioned and clickable, over the app's own content
+		// with nothing drawn under them -- hide them; DisplayServer's real outer
+		// frame already provides equivalent, working close/maximize controls.
+		close.Show(false);
+		maximize.Show(false);
+		return;
+	}
+	Size sz = GetSize();
+	Rect m = Margins();
+#ifdef flagTUI
+	Size cell = TuiCellSize();
+	int x = sz.cx - cell.cx;
+	if(close.IsShown()) {
+		close.SetRect(x -= cell.cx * 2, 0, cell.cx * 2, cell.cy);
+	}
+	if(maximize.IsShown()) {
+		maximize.SetRect(x -= cell.cx * 2, 0, cell.cx * 2, cell.cy);
+	}
+#else
+	int c = GetStdFontCy() + 4;
+	int x = sz.cx - m.right;
+	if(close.IsShown())
+		close.SetRect(x -= c, m.top, c, c);
+	if(maximize.IsShown())
+		maximize.SetRect(x -= c, m.top, c, c);
+#endif
+}
+
+Rect TopWindowFrame::GetClient() const
+{
+	Rect r = GetRect();
+	Rect m = Margins();
+	r.left += m.left;
+	r.right -= m.right;
+	r.top += m.top;
+	r.bottom -= m.bottom;
+	r.top += sTitleBarHeight();
+	return r;
+}
+
+Rect TopWindowFrame::ComputeClient(Rect r)
+{
+	Rect m = Margins();
+	r.left -= m.left;
+	r.right += m.right;
+	r.top -= m.top;
+	r.bottom += m.bottom;
+	r.top -= sTitleBarHeight();
+	return r;
+}
+
+void TopWindowFrame::SetClient(Rect r)
+{
+	SetRect(ComputeClient(r));
+}
+
+Point TopWindowFrame::GetDragMode(Point p)
+{
+	Size sz = GetSize();
+#ifdef flagTUI
+	Size cell = TuiCellSize();
+	if(p.y < cell.cy)
+		return Point(0, 0);
+	Point dir;
+	dir.y = p.y < cell.cy ? -1 : p.y >= sz.cy - cell.cy ? 1 : 0;
+	dir.x = p.x < cell.cx ? -1 : p.x >= sz.cx - cell.cx ? 1 : 0;
+	return dir;
+#else
+	Rect m = ChMargins(FBImg::border());
+	Point dir;
+	dir.y = p.y < m.top ? -1 : p.y > sz.cy - m.top ? 1 : 0;
+	dir.x = p.x < m.left ? -1 : p.x > sz.cx - m.right ? 1 : 0;
+	return dir;
+#endif
+}
+
+void TopWindowFrame::StartDrag()
+{
+	if(maximized)
+		return;
+	if(!sizeable && (dir.x || dir.y))
+		return;
+	SetCapture();
+	startrect = GetRect();
+	startpos = GetMousePos();
+	LLOG("START DRAG ---------------");
+}
+
+void TopWindowFrame::GripResize()
+{
+	dir = Point(1, 1);
+	StartDrag();
+}
+
+void TopWindowFrame::LeftDown(Point p, dword keyflags)
+{
+	dir = GetDragMode(p);
+	StartDrag();
+}
+
+void TopWindowFrame::CancelMode()
+{
+	holding = false;
+}
+
+void TopWindowFrame::LeftUp(Point p, dword keyflags)
+{
+	holding = false;
+}
+
+void TopWindowFrame::Hold()
+{
+	if(HasCapture()) {
+		if(HasMouse() && GetMouseLeft() && holding)
+			StartDrag();
+		ReleaseCapture();
+		holding = false;
+	}
+}
+
+void TopWindowFrame::LeftHold(Point p, dword keyflags)
+{
+/*	if(HasCapture() || FullWindowDrag)
+		return;
+	dir = GetDragMode(p);
+	if(!dir.x && !dir.y)
+		StartDrag();*/
+}
+
+void TopWindowFrame::LeftDouble(Point p, dword keyflags)
+{
+	ToggleMaximize();
+	IgnoreMouseUp();
+}
+
+void TopWindowFrame::MouseMove(Point pt, dword)
+{
+	if(!HasCapture() || holding)
+		return;
+	Size msz = ComputeClient(minsize).GetSize();
+	Point p = GetMousePos() - startpos;
+	Rect r = startrect;
+	if(dir.x == -1)
+		r.left = min(r.left + p.x, startrect.right - msz.cx);
+	if(dir.x == 1)
+		r.right = max(r.right + p.x, startrect.left + msz.cx);
+	if(dir.y == -1)
+		r.top = min(r.top + p.y, startrect.bottom - msz.cy);
+	if(dir.y == 1)
+		r.bottom = max(r.bottom + p.y, startrect.top + msz.cy);
+	if(dir.y == 0 && dir.x == 0)
+		r.Offset(p);
+	SetRect(r);
+	if(window)
+		window->SetRect(GetClient());
+}
+
+Image TopWindowFrame::GetDragImage(Point dir)
+{
+	static Image (*im[9])() = {
+		Image::SizeTopLeft, Image::SizeLeft, Image::SizeBottomLeft,
+		Image::SizeTop, Image::Arrow, Image::SizeBottom,
+		Image::SizeTopRight, Image::SizeRight, Image::SizeBottomRight,
+	};
+	return (*im[(dir.x + 1) * 3 + (dir.y + 1)])();
+}
+
+Image TopWindowFrame::CursorImage(Point p, dword)
+{
+	if(!sizeable)
+		return Image::Arrow();
+	return GetDragImage(HasCapture() ? dir : GetDragMode(p));
+}
+
+END_UPP_NAMESPACE
+
+#endif

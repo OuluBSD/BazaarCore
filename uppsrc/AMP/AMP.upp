@@ -1,0 +1,23 @@
+description "The C++ AMP compatibility library\3770,128,128";
+
+uses
+	Core,
+	Draw;
+
+file
+	AMP.h,
+	AGENTS.md,
+	AMPCompat.h,
+	AMPDeviceInventory.h,
+	AMPDeviceInventory.cpp,
+	AMPTemplateAtlas.h,
+	AMPTemplateAtlas.cpp,
+	AMPTemplatePixels.h,
+	AMPTemplatePixels.cpp,
+	AMPTemplateMatcher.h,
+	AMPTemplateMatcher.cpp,
+	AMPCompositeTemplateMatcher.h,
+	AMPCompositeTemplateMatcher.cpp,
+	AMPTemplateFrame.h,
+	AMPTemplateFrame.cpp,
+	DX11Webcam.h;

@@ -1,0 +1,8 @@
+description "Compatibility forwarding shim for Core/Ext\377";
+
+uses
+	Core/Ext;
+
+file
+	CryptoExt.h,
+	Crypto.h;

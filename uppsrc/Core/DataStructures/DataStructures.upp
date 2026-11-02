@@ -1,0 +1,10 @@
+description "Compatibility forwarding shim for Core/Ext\377";
+
+uses
+	Core/Ext;
+
+file
+	DataStructures.h,
+	Container.h,
+	Index.h,
+	Record.h;

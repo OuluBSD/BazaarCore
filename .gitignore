@@ -1,0 +1,16 @@
+.DS_Store
+*~
+*.swp
+*.bak
+out/
+bin/
+.bin/
+*.exe
+*.o
+*.a
+*.so
+*.dylib
+.cache/
+applied-patches/
+patched-uppsrc
+.uppbuilder/

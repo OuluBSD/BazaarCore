@@ -1,0 +1,10 @@
+description "Bytecode VM abstraction layer";
+
+uses
+	ByteVM/Python,
+	ByteVM/EcmaScript;
+
+file
+	AGENTS.md,
+	ByteVM.h,
+	PyBindings.h;

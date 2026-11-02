@@ -1,0 +1,20 @@
+description "Local task & phase tracker CLI — scales toward GitHub-style issues/PRs later\377";
+
+uses
+	Core;
+
+file
+	AGENTS.md,
+	Manager.h,
+	Task.h,
+	Task.cpp,
+	Store.h,
+	Store.cpp,
+	Commands.h,
+	Commands.cpp,
+	GitCommands.h,
+	GitCommands.cpp,
+	main.cpp;
+
+mainconfig
+	"" = "";
