@@ -2,6 +2,17 @@
 
 BazaarCore is the foundation assembly and core infrastructure tier for the Ultimate++ (U++) ecosystem.
 
+## Dependency Hierarchy
+
+Part of the **OuluBSD U++ Modularization Architecture**:
+```
+UppBootstrap  <--  AdvancedBuilder (UppBuilder)  <--  BazaarCore  <--  IDE (DevEnv)
+```
+1. **`UppBootstrap`**: Zero-dependency toolchain bootstrap (`umk` compiler & build methods).
+2. **`AdvancedBuilder` (`UppBuilder`)**: Meta-builder with 3-pillar bridge, multi-assembly chaining, deterministic config keys.
+3. **`BazaarCore`** (this repo): Foundation assembly (`patched-uppsrc`), single amalgamated `Core/Ext`, and Tier 3 packages (`Docking`, `Terminal`, `Manager`...).
+4. **`IDE` (`DevEnv`)**: Modular developer environment application built on top of `BazaarCore` via `UppBuilder`.
+
 ## Overview
 
 BazaarCore establishes a clean separation between pristine upstream U++ (`ultimatepp`) and ecosystem extensions:
