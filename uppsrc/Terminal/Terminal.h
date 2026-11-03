@@ -388,6 +388,9 @@ private:
     void        RefreshSizeHint()                               { Refresh(GetSizeHint(GetView(), GetPageSize()).b.Inflated(8)); }
 
     Rect        GetCaretRect();
+    virtual Rect GetCaret() const override;
+    void        SetCaret(const Rect& r)                         { Refresh(r); }
+    void        KillCaret()                                     { Refresh(GetCaretRect()); }
     void        PlaceCaret(bool scroll = false);
 
     int         GetSbPos() const                                { return IsAlternatePage() ? 0 : sb; }

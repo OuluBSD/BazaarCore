@@ -91,6 +91,13 @@ void TerminalCtrl::PlaceCaret(bool scroll)
 	}
 }
 
+Rect TerminalCtrl::GetCaret() const
+{
+	if(!modes[DECTCEM] || !caret.IsBlinking())
+		return Null;
+	return const_cast<TerminalCtrl*>(this)->GetCaretRect();
+}
+
 Rect TerminalCtrl::GetCaretRect()
 {
 	Size csz = GetCellSize();

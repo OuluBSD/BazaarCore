@@ -1,0 +1,23 @@
+description "VT cell model, page buffer and escape-sequence parser, GUI-free\377";
+
+uses
+	Core,
+	Draw;
+
+file
+	AGENTS.md,
+	TerminalCore.h,
+	Parser readonly separator,
+	Parser.h,
+	Parser.cpp,
+	Cell readonly separator,
+	Cell.h,
+	Cell.cpp,
+	Page readonly separator,
+	Page.h,
+	Page.cpp,
+	Sixel readonly separator,
+	Sixel.h,
+	Sixel.cpp,
+	Info readonly separator,
+	ReadMe.md;
