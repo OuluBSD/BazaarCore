@@ -166,6 +166,7 @@ jobs:
           )
           echo INCLUDE=C:\vcpkg\installed\x64-windows\include;%INCLUDE%>>%GITHUB_ENV%
           echo LIB=C:\vcpkg\installed\x64-windows\lib;C:\vcpkg\installed\x64-windows\debug\lib;%LIB%>>%GITHUB_ENV%
+          echo C:\vcpkg\installed\x64-windows\bin>>%GITHUB_PATH%
 
       - name: Bootstrap umk with UppBootstrap
         shell: cmd
@@ -203,4 +204,5 @@ jobs:
       - name: Verify Manager Execution
         shell: cmd
         run: |
+          if exist "C:\vcpkg\installed\x64-windows\bin" copy /y "C:\vcpkg\installed\x64-windows\bin\*.dll" BazaarCore\bin\
           BazaarCore\bin\Manager.exe --help
