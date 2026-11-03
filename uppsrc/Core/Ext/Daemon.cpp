@@ -51,11 +51,7 @@ bool RunningFlag::IsRunning() const { return running; }
 
 static void DaemonBase_signal_handler(int sig)
 {
-	#ifdef flagPOSIX
 	signal(sig, SIG_IGN);
-	#else
-	TODO
-	#endif
 	
 	Cout() << "DaemonBase - stopping\n";
 

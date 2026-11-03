@@ -69,7 +69,7 @@ bool Record::IsEmpty() const {
 
 
 Record StreamRecord::LoadAny(String path) {
-	TODO
+	NEVER();
 	return Record();
 }
 

@@ -420,7 +420,14 @@ struct Trans8x16 {
 	        x = _mm_slli_epi64(x,1);
 	    }
 	    #else
-	    TODO
+	    for (int i = 0; i < 8; ++i) {
+	        uint16 row = 0;
+	        for (int j = 0; j < 16; ++j) {
+	            if ((u8[j] >> i) & 1)
+	                row |= (uint16(1) << j);
+	        }
+	        u16[i] = row;
+	    }
 	    #endif
 	}
 	
@@ -445,7 +452,14 @@ struct Trans8x32 {
 	        x = _mm256_slli_epi64(x,1);
 	    }
 	    #else
-	    TODO
+	    for (int i = 0; i < 8; ++i) {
+	        uint32 row = 0;
+	        for (int j = 0; j < 32; ++j) {
+	            if ((u8[j] >> i) & 1)
+	                row |= (uint32(1) << j);
+	        }
+	        u32[i] = row;
+	    }
 	    #endif
 	}
 };
