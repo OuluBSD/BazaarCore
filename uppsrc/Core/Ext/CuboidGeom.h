@@ -422,5 +422,13 @@ template <class I, class R=typename I::Pt> R FirstCorner(const I&);
 template <> inline Point FirstCorner(const Rect& r) {return r.TopLeft();}
 template <> inline Point3f FirstCorner(const Cubf& r) {return r.TopLeftNear();}
 
+#ifdef _WIN32
+#ifndef near
+#define near
+#endif
+#ifndef far
+#define far
+#endif
+#endif
 
 #endif
