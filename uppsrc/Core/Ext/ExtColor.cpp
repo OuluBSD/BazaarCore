@@ -300,15 +300,6 @@ Color HeatmapBlack(float progress) {
     }
 }
 
-RGBA InvertRGBA(const RGBA& c) {
-	RGBA a;
-	a.r = ~c.r;
-	a.g = ~c.g;
-	a.b = ~c.b;
-	a.a = 255;
-	return a;
-}
-
 RGBA TransformHue(const RGBA& in, float angle) {
 	double U = cos(angle * M_PI / 180);
 	double W = sin(angle * M_PI / 180);
