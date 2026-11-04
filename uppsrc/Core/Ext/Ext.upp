@@ -67,6 +67,7 @@ file
 	"Documentation & Assets" readonly separator,
 	AppRegistry_BACKENDS.md,
 	"Sources (BLITZ)" readonly separator,
+	OtherExt.cpp,
 	AppLog.cpp,
 	AppRegistry.cpp,
 	CKMeans.cpp,

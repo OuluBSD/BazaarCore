@@ -104,7 +104,7 @@ struct Visitor {
 	}
 	template<class T>
 	void VisitVectorJson(const char* key, T& o) {
-		json->Array(key, o, THISBACK(VisitJsonItem<typename T::value_type>), NULL, scope);
+		json->Array(key, o, THISBACK(VisitJsonItem<typename T::value_type>), NULL);
 	}
 	template<class T>
 	void VisitVectorHash(T& o) {
@@ -151,7 +151,7 @@ struct Visitor {
 	
 	template<class T>
 	void VisitVectorVectorItem(JsonIO& j, T& o) {
-		JsonizeArray(j, o, THISBACK(VisitJsonItem<typename T::value_type>), scope);
+		JsonizeArray(j, o, THISBACK(VisitJsonItem<typename T::value_type>));
 	}
 	template<class T>
 	void VisitVectorVectorJson(const char* key, T& o) {

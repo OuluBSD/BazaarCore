@@ -9,7 +9,7 @@ VectorMap<hash_t, String>& TypeStringHasherIndex::Map() {
 
 String TypeStringHasherIndex::ToString(hash_t h) {
 	int i = Map().Find(h);
-	return i >= 0 ? Map()[i] : HexStr64(h);
+	return i >= 0 ? Map()[i] : Format("0x%X", (int64)h);
 }
 
 END_UPP_NAMESPACE
