@@ -1,6 +1,6 @@
-diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /yhteinen/active/sblo/Dev/ultimatepp/uppsrc/Core/Core.h applied-patches/Core/Core.h
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Core.h /yhteinen/active/sblo/Dev/BazaarCore/patched-uppsrc/Core/Core.h
 --- a/Core.h	2026-10-31 17:16:38.853507600 +0200
-+++ b/Core.h	2026-11-01 22:34:18.812644800 +0200
++++ b/Core.h	2026-11-05 00:16:42.109937300 +0200
 @@ -420,6 +420,9 @@
  
  }
@@ -11,9 +11,9 @@ diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /yhtein
  #if (defined(TESTLEAKS) || defined(HEAPDBG)) && defined(COMPILER_GCC) && defined(UPP_HEAP)
  
  //Place it to the begining of each file to be the first function called in whole executable...
-diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /yhteinen/active/sblo/Dev/ultimatepp/uppsrc/Core/Core.upp applied-patches/Core/Core.upp
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Core.upp /yhteinen/active/sblo/Dev/BazaarCore/patched-uppsrc/Core/Core.upp
 --- a/Core.upp	2026-10-31 17:16:38.853507600 +0200
-+++ b/Core.upp	2026-11-01 22:34:18.813644800 +0200
++++ b/Core.upp	2026-11-05 00:16:42.109937300 +0200
 @@ -38,6 +38,9 @@
  
  external_dependency(RPM) "zlib-ng-compat-devel|zlib-devel lz4-devel xxhash-devel pcre2-devel";
@@ -24,3 +24,36 @@ diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /yhtein
  file
  	Core.h options(BUILDER_OPTION) PCH,
  	config.h,
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Heap.h /yhteinen/active/sblo/Dev/BazaarCore/patched-uppsrc/Core/Heap.h
+--- a/Heap.h	2026-03-18 23:06:21.331714900 +0200
++++ b/Heap.h	2026-11-05 00:32:28.950007900 +0200
+@@ -54,11 +54,13 @@
+ #ifdef HEAPDBG
+ void  MemoryIgnoreLeaksBegin();
+ void  MemoryIgnoreLeaksEnd();
++extern bool NoMemoryLeaksCheck;
+ 
+ void  MemoryCheckDebug();
+ #else
+ inline void  MemoryIgnoreLeaksBegin() {}
+ inline void  MemoryIgnoreLeaksEnd() {}
++extern bool NoMemoryLeaksCheck;
+ 
+ inline void  MemoryCheckDebug() {}
+ #endif
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/ValueUtil.h /yhteinen/active/sblo/Dev/BazaarCore/patched-uppsrc/Core/ValueUtil.h
+--- a/ValueUtil.h	2024-05-09 10:31:07.803963800 +0300
++++ b/ValueUtil.h	2026-11-05 00:32:38.422125600 +0200
+@@ -424,6 +424,12 @@
+ 	const Value& operator[](const char *key) const   { return operator[](Value(key)); }
+ 	const Value& operator[](const int key) const     { return operator[](Value(key)); }
+ 	const Value& operator[](const Id& key) const     { return operator[](Value(key.ToString())); }
++	Value Get(const Value& key, const Value& default_val = Value()) const {
++		int i = Find(key);
++		return i >= 0 ? GetValue(i) : default_val;
++	}
++	Value Get(const String& key, const Value& default_val = Value()) const { return Get(Value(key), default_val); }
++	Value Get(const char* key, const Value& default_val = Value()) const   { return Get(Value(key), default_val); }
+ 
+ 	Value& GetAdd(const Value& key)                  { return UnShare().GetAdd(key); }
+ 	Value& operator()(const Value& key)              { return GetAdd(key); }
