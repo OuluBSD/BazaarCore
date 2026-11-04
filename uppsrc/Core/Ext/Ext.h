@@ -57,6 +57,7 @@ inline bool IsAllDigit(const String& s) {
 #include "MluiScript.h"
 #include "CmdArgs.h"
 #include "Repl.h"
+#include "InternalShell.h"
 #include "AiCommon.h"
 #include "VfsValueLegacy.h"
 
