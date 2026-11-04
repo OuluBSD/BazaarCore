@@ -268,7 +268,10 @@ inline int HammingDistance64(int count, const uint64* a, const uint64* b) {
 
 void SetSharedDirectory(String d);
 String GetSharedDirectory();
+String FindShareDir();
+String ShareDirFile(String file);
 String SharedFile(String file);
+String RealizeShareFile(String rel_path);
 void RenameFile(String oldpath, String newpath);
 void TouchFile(String path);
 

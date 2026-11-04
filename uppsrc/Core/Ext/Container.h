@@ -13,6 +13,17 @@ T Slice(const T& vec, int begin, int end) {
 	return ret;
 }
 
+template <class T> int VectorRemoveKey(Vector<T>& v, const T& o) {
+	int rem_count = 0;
+	for(int i = 0; i < v.GetCount(); i++) {
+		if (v[i] == o) {
+			v.Remove(i--);
+			rem_count++;
+		}
+	}
+	return rem_count;
+}
+
 
 
 

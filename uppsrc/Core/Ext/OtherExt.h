@@ -7,6 +7,9 @@
 
 NAMESPACE_UPP
 
+void CallInExitBlock(Event<> cb);
+inline void SetCoutLog() { StdLogSetup(LOG_COUT); }
+
 template <class T>
 struct ManagedStatic {
 	T o;
@@ -206,6 +209,8 @@ hash_t TypedStringHasher(const char* s) {
 	}
 	return h;
 }
+
+#define TYPED_STRING_HASHER(x) TypedStringHasher<x>(#x);
 
 END_UPP_NAMESPACE
 

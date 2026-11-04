@@ -323,4 +323,96 @@ String GetDataDirectoryFile(String file) {
 	return AppendFileName(GetDataDirectory(), file);
 }
 
+static String sSharedDirectory;
+
+void SetSharedDirectory(String d) {
+	sSharedDirectory = d;
+}
+
+String FindShareDir() {
+	if (!sSharedDirectory.IsEmpty() && DirectoryExists(sSharedDirectory))
+		return sSharedDirectory;
+	
+	String exe_folder = GetExeFolder();
+	if (!exe_folder.IsEmpty()) {
+		for (String folder = exe_folder; !folder.IsEmpty();) {
+			String candidate = AppendFileName(folder, "share");
+			if (DirectoryExists(candidate))
+				return candidate;
+			
+			String parent = GetFileFolder(folder);
+			if (parent.IsEmpty() || parent == folder)
+				break;
+			folder = parent;
+		}
+	}
+	
+	String config_share = ConfigFile("share");
+	if (DirectoryExists(config_share))
+		return config_share;
+	
+	String home_share = GetHomeDirFile("share");
+	if (DirectoryExists(home_share))
+		return home_share;
+	
+	#if defined flagLINUX
+	return "/usr/share";
+	#elif defined flagFREEBSD
+	return "/usr/local/share";
+	#else
+	return config_share;
+	#endif
+}
+
+String GetSharedDirectory() {
+	if (!sSharedDirectory.IsEmpty())
+		return sSharedDirectory;
+	return FindShareDir();
+}
+
+String ShareDirFile(String file) {
+	return AppendFileName(FindShareDir(), file);
+}
+
+String SharedFile(String file) {
+	return ShareDirFile(file);
+}
+
+String RealizeShareFile(String rel_path) {
+	if (rel_path.IsEmpty())
+		return String();
+	
+	#ifdef flagPOSIX
+	if (rel_path.Left(2) == "~/") {
+		rel_path = AppendFileName(GetHomeDirectory(), rel_path.Mid(2));
+	}
+	#endif
+	
+	int tries_count = 8;
+	#ifdef flagDEBUG
+	tries_count++;
+	#endif
+	
+	for (int tries = 0; tries < tries_count; tries++) {
+		String path;
+		switch (tries) {
+			case 0: path = rel_path; break;
+			case 1: path = ShareDirFile(rel_path); break;
+			case 2: path = ShareDirFile(AppendFileName("imgs", rel_path)); break;
+			case 3: path = ShareDirFile(AppendFileName("videos", rel_path)); break;
+			case 4: path = ShareDirFile(AppendFileName("sounds", rel_path)); break;
+			case 5: path = ShareDirFile(AppendFileName("models", rel_path)); break;
+			case 6: path = ShareDirFile(AppendFileName("shaders", rel_path)); break;
+			case 7: path = ShareDirFile(AppendFileName("soundfonts", rel_path)); break;
+			#ifdef flagDEBUG
+			case 8: path = GetDataDirectoryFile(rel_path); break;
+			#endif
+		}
+		if (FileExists(path) || DirectoryExists(path))
+			return path;
+	}
+	
+	return rel_path;
+}
+
 END_UPP_NAMESPACE

@@ -1,6 +1,10 @@
 #ifndef _Core_MathNumeric_Math_h_
 #define _Core_MathNumeric_Math_h_
 
+inline bool IsClose(double a, double b, double epsilon = 1e-6) {
+	return fabs(a - b) <= epsilon;
+}
+
 
 #ifndef M_PI
 	#define M_PI	3.1415926535897932384626433832795

@@ -261,4 +261,10 @@ private:
 	bool        active = false;
 };
 
+inline double ResetSeconds(TimeStop& ts) {
+	double s = ts.Seconds();
+	ts.Reset();
+	return s;
+}
+
 #endif
