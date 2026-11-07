@@ -147,10 +147,12 @@ public:
 
 	Http&  SetRawCookie(const char *id, const String& value,
 	                    Time expires = Null, const char *path = NULL,
-	                    const char *domain = NULL, bool secure = false, bool httponly = false);
+	                    const char *domain = NULL, bool secure = false, bool httponly = false,
+	                    const char *samesite = NULL);
 	Http&  SetCookie(const char *id, const String& value,
 	                 Time expires = Null, const char *path = NULL,
-	                 const char *domain = NULL, bool secure = false, bool httponly = false);
+	                 const char *domain = NULL, bool secure = false, bool httponly = false,
+	                 const char *samesite = NULL);
 	Http&  SetHeader(const char *header, const char *data);
 	Http&  ClearHeader(const char *header);
 

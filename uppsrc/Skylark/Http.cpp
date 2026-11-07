@@ -71,7 +71,7 @@ String HttpResponse(int code, const char *phrase, const String& data, const char
 
 Http& Http::SetRawCookie(const char *id, const String& value, Time expires,
                          const char *path, const char *domain, bool secure,
-                         bool httponly)
+                         bool httponly, const char *samesite)
 {
 	if(*id == '.')
 		id++;
@@ -88,6 +88,8 @@ Http& Http::SetRawCookie(const char *id, const String& value, Time expires,
 		c << "; Secure";
 	if(httponly)
 		c << "; HttpOnly";
+	if(samesite && *samesite)
+		c << "; SameSite=" << samesite;
 	c << "\r\n";
 	LLOG(c);
 	return *this;
@@ -152,9 +154,10 @@ Http& Http::SendFile(const Upp::String& filepath, int chunksize)
 }
 
 Http& Http::SetCookie(const char *id, const String& value, Time expires,
-                      const char *path, const char *domain, bool secure, bool httponly)
+                      const char *path, const char *domain, bool secure, bool httponly,
+                      const char *samesite)
 {
-	return SetRawCookie(id, UrlEncode(value), expires, path, domain, secure);
+	return SetRawCookie(id, UrlEncode(value), expires, path, domain, secure, httponly, samesite);
 }
 
 Http& Http::SetHeader(const char *header, const char *data)
