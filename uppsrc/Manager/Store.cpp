@@ -6,6 +6,15 @@ ManagerStore::ManagerStore() {
 	root_dir = NormalizePath(AppendFileName(GetCurrentDirectory(), "mgr"));
 }
 
+void ManagerStore::SetRootDir(const String& dir) {
+	if(root_dir == dir)
+		return;
+	root_dir = dir;
+	projects.Clear();
+	phases.Clear();
+	tasks.Clear();
+}
+
 String ManagerStore::PadSeq(int seq) {
 	return Format("%03d", seq);
 }

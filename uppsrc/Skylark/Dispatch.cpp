@@ -334,6 +334,11 @@ void SkylarkApp::NotFound(Http& http)
 	http.Response(404, "Not found");
 }
 
+bool SkylarkApp::FilterHandler(Http& http)
+{
+	return true;
+}
+
 void SkylarkApp::SqlError(Http& http, const SqlExc& e)
 {
 	http << "Internal server error<br>SQL ERROR: " << e;
@@ -451,23 +456,34 @@ void Http::Dispatch(TcpSocket& socket)
 					ReadMultiPart(content);
 			}
 			response.Clear();
+			response_set = false;
 			if(bd.handler) {
-				if((http_type == DispatchNode::HttpMethod::POST) && !bd.post_raw) {
-					String id = Nvl((*this)["__post_identity__"], (*this)["__js_identity__"]);
-					if(id != (*this)[".__identity__"])
-						throw AuthExc("identity error");
-				}
-				lang = Nvl(Int(".__lang__"), LNG_ENGLISH);
-				Upp::SetLanguage(lang);
-				var.GetAdd(".__lang__") = lang;
-				var.GetAdd(".language") = ToLower(LNGAsText(lang));
 				handlerid = bd.id;
 				LDUMP(handlerid);
-				bd.handler(*this);
-				if(session_dirty)
-					SaveSession();
-				if(SQL.IsOpen())
-					SQL.Commit();
+				if(!app.FilterHandler(*this)) {
+					if(!response_set) {
+						response = "Forbidden";
+						Response(403, "Forbidden");
+					}
+					if(SQL.IsOpen())
+						SQL.Rollback();
+				}
+				else {
+					if((http_type == DispatchNode::HttpMethod::POST) && !bd.post_raw) {
+						String id = Nvl((*this)["__post_identity__"], (*this)["__js_identity__"]);
+						if(id != (*this)[".__identity__"])
+							throw AuthExc("identity error");
+					}
+					lang = Nvl(Int(".__lang__"), LNG_ENGLISH);
+					Upp::SetLanguage(lang);
+					var.GetAdd(".__lang__") = lang;
+					var.GetAdd(".language") = ToLower(LNGAsText(lang));
+					bd.handler(*this);
+					if(session_dirty)
+						SaveSession();
+					if(SQL.IsOpen())
+						SQL.Commit();
+				}
 			}
 			else
 				app.NotFound(*this);

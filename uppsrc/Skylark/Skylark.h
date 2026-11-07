@@ -84,6 +84,7 @@ class SkylarkApp : protected SkylarkConfig {
 public:
 	virtual void SigUsr1();
 	
+	virtual bool FilterHandler(Http& http);
 	virtual void NotFound(Http& http);
 	virtual void SqlError(Http& http, const SqlExc& e);
 	virtual void InternalError(Http& http, const Exc& e);

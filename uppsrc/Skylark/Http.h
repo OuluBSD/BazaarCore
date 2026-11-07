@@ -75,6 +75,7 @@ class Http : public Renderer {
 	int    code;
 	String code_text;
 	String response;
+	bool   response_set;
 	String content_type;
 	String request_content_type;
 	
@@ -120,6 +121,7 @@ public:
 	Value  Render(const String& template_name)         { return Renderer::Render(template_name); }
 
 	String GetHeader(const char *s) const              { return hdr[s]; }
+	String GetMethod() const                           { return hdr.GetMethod(); }
 	int    GetLength() const                           { return atoi(GetHeader("content-length")); }
 	String GetPeerAddr() const;
 
@@ -160,10 +162,10 @@ public:
 
 	Http&  SetLanguage(int lang);
 	
-	Http&  Response(int code_, const String& ctext)   { code = code_; code_text = ctext; return *this; }
+	Http&  Response(int code_, const String& ctext)   { code = code_; code_text = ctext; response_set = true; return *this; }
 	
 	Http&  RenderResult(const char *template_name);
-	Http&  Redirect(const char *url, int code_ = 302) { code = code_; redirect = url; return *this; }
+	Http&  Redirect(const char *url, int code_ = 302) { code = code_; redirect = url; response_set = true; return *this; }
 	Http&  Redirect(const HandlerId& handler, const Vector<Value>& arg);
 	Http&  Redirect(const HandlerId& handler);
 	Http&  Redirect(const HandlerId& handler, const Value& v1);
