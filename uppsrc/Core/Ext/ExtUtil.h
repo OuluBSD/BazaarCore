@@ -52,11 +52,46 @@ inline void CopyHeaplessMat(const T& from, T& to) {
 	}
 }
 
+inline String HexStr(int i) { return Format("0x%X", i); }
+inline String HexStr64(int64 i) { return Format("0x%X", i); }
+inline String HexStrPtr(void* i) { return Format("0x%X", (int64)i); }
+template <class T> String HexStrPtr(const T* o) { return HexStrPtr((void*)o); }
+
 inline void VectorAdd(const Vector<double>& from, Vector<double>& to) {
 	ASSERT(from.GetCount() == to.GetCount());
 	double* t = to.Begin();
 	for(double f : from)
 		*(t++) += f;
+}
+
+template <class T> int VectorFind(const Vector<T>& v, const T& o) {
+	int i = 0;
+	for(auto& local : v) {
+		if (local == o)
+			return i;
+		i++;
+	}
+	return -1;
+}
+
+template <class T> T& VectorGetAdd(Vector<T>& v, const T& o, int* found=0) {
+	if (found) {
+		int i = 0;
+		for(auto& local : v) {
+			if (local == o) {
+				*found = i;
+				return local;
+			}
+			i++;
+		}
+		*found = -1;
+	}
+	else {
+		for(auto& i : v)
+			if (i == o)
+				return i;
+	}
+	return v.Add(o);
 }
 
 template <class T> int VectorFindAdd(Vector<T>& v, const T& o, T** found=0) {
