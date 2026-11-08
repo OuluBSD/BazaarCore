@@ -415,4 +415,13 @@ String RealizeShareFile(String rel_path) {
 	return rel_path;
 }
 
+#if defined(PLATFORM_MACOS) || defined(PLATFORM_COCOA) || defined(flagOSX)
+__attribute__((weak)) String GetDesktopFolder()   { return AppendFileName(GetHomeDirectory(), "Desktop"); }
+__attribute__((weak)) String GetDownloadFolder()  { return AppendFileName(GetHomeDirectory(), "Downloads"); }
+__attribute__((weak)) String GetPicturesFolder()  { return AppendFileName(GetHomeDirectory(), "Pictures"); }
+__attribute__((weak)) String GetDocumentsFolder() { return AppendFileName(GetHomeDirectory(), "Documents"); }
+__attribute__((weak)) String GetMusicFolder()     { return AppendFileName(GetHomeDirectory(), "Music"); }
+__attribute__((weak)) String GetVideoFolder()     { return AppendFileName(GetHomeDirectory(), "Movies"); }
+#endif
+
 END_UPP_NAMESPACE
