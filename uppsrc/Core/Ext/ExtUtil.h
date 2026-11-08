@@ -59,6 +59,42 @@ inline void VectorAdd(const Vector<double>& from, Vector<double>& to) {
 		*(t++) += f;
 }
 
+template <class T> int VectorFindAdd(Vector<T>& v, const T& o, T** found=0) {
+	if (found) {
+		int i = 0;
+		for(auto& local : v) {
+			if (local == o) {
+				*found = &local;
+				return i;
+			}
+			i++;
+		}
+		*found = 0;
+	}
+	else {
+		int i = 0;
+		for(auto& it : v) {
+			if (it == o)
+				return i;
+			i++;
+		}
+	}
+	v.Add(o);
+	return v.GetCount()-1;
+}
+
+template <class T> int VectorRemoveKey(Vector<T>& v, const T& o) {
+	int rem_count = 0;
+	for(int i = 0; i < v.GetCount(); i++) {
+		if (v[i] == o) {
+			v.Remove(i--);
+			rem_count++;
+		}
+	}
+	return rem_count;
+}
+
+
 template <class T>
 void Resize1D(Vector<T>& vec, int length) {
 	vec.SetCount(length);
