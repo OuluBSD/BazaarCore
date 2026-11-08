@@ -1,7 +1,53 @@
-diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Core.h /yhteinen/active/sblo/Dev/BazaarCore/patched-uppsrc/Core/Core.h
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Core.h applied-patches/Core/Core.h
 --- a/Core.h	2026-10-31 17:16:38.853507600 +0200
-+++ b/Core.h	2026-11-05 00:16:42.109937300 +0200
-@@ -420,6 +420,9 @@
++++ b/Core.h	2026-11-09 00:48:35.166940800 +0200
+@@ -271,20 +271,6 @@
+ // #define atof @ // atof is broken, as it depends on setlocale - might want ',' instead of '.' breaking a lot of code
+ // Use Atof instead which is fixed with '.'
+ 
+-namespace Upp {
+-
+-#ifndef flagNODEPRECATED // Using deprecated features produces error
+-#define DEPRECATED
+-#endif
+-
+-#include "Defs.h"
+-
+-class XmlIO;
+-class JsonIO;
+-
+-#include "Ops.h"
+-#include "Fn.h"
+-
+ #ifdef flagLEGACY_CPU
+ #define flagNOSIMD
+ #endif
+@@ -302,6 +288,24 @@
+ #undef CPU_SSE2
+ #endif
+ 
++#if defined(CPU_NEON)
++#include <arm_neon.h>
++#endif
++
++namespace Upp {
++
++#ifndef flagNODEPRECATED // Using deprecated features produces error
++#define DEPRECATED
++#endif
++
++#include "Defs.h"
++
++class XmlIO;
++class JsonIO;
++
++#include "Ops.h"
++#include "Fn.h"
++
+ #ifdef CPU_SSE2
+ #include "SIMD_SSE2.h"
+ #define CPU_SIMD 1
+@@ -420,6 +424,9 @@
  
  }
  
@@ -11,9 +57,9 @@ diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/s
  #if (defined(TESTLEAKS) || defined(HEAPDBG)) && defined(COMPILER_GCC) && defined(UPP_HEAP)
  
  //Place it to the begining of each file to be the first function called in whole executable...
-diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Core.upp /yhteinen/active/sblo/Dev/BazaarCore/patched-uppsrc/Core/Core.upp
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Core.upp applied-patches/Core/Core.upp
 --- a/Core.upp	2026-10-31 17:16:38.853507600 +0200
-+++ b/Core.upp	2026-11-05 00:16:42.109937300 +0200
++++ b/Core.upp	2026-11-05 00:33:10.716525700 +0200
 @@ -38,6 +38,9 @@
  
  external_dependency(RPM) "zlib-ng-compat-devel|zlib-devel lz4-devel xxhash-devel pcre2-devel";
@@ -24,9 +70,9 @@ diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/s
  file
  	Core.h options(BUILDER_OPTION) PCH,
  	config.h,
-diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Heap.h /yhteinen/active/sblo/Dev/BazaarCore/patched-uppsrc/Core/Heap.h
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Heap.h applied-patches/Core/Heap.h
 --- a/Heap.h	2026-03-18 23:06:21.331714900 +0200
-+++ b/Heap.h	2026-11-05 00:32:28.950007900 +0200
++++ b/Heap.h	2026-11-05 00:33:10.716525700 +0200
 @@ -54,11 +54,13 @@
  #ifdef HEAPDBG
  void  MemoryIgnoreLeaksBegin();
@@ -41,9 +87,9 @@ diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/s
  
  inline void  MemoryCheckDebug() {}
  #endif
-diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/ValueUtil.h /yhteinen/active/sblo/Dev/BazaarCore/patched-uppsrc/Core/ValueUtil.h
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/ValueUtil.h applied-patches/Core/ValueUtil.h
 --- a/ValueUtil.h	2024-05-09 10:31:07.803963800 +0300
-+++ b/ValueUtil.h	2026-11-05 00:32:38.422125600 +0200
++++ b/ValueUtil.h	2026-11-05 00:33:10.716525700 +0200
 @@ -424,6 +424,12 @@
  	const Value& operator[](const char *key) const   { return operator[](Value(key)); }
  	const Value& operator[](const int key) const     { return operator[](Value(key)); }
