@@ -87,6 +87,7 @@ file
 	ExtRandom.cpp,
 	ExtUtil.cpp,
 	FastMath.cpp,
+	GEnums.cpp,
 	Html.cpp,
 	MetaTraits.cpp,
 	Mlui.cpp,
