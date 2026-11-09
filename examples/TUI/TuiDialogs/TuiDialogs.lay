@@ -1,0 +1,9 @@
+LAYOUT(SampleDialogLayout, 280, 140)
+	ITEM(Label, lblName, SetLabel(t_("Name:")).LeftPosZ(12, 60).TopPosZ(12, 19))
+	ITEM(EditField, name, LeftPosZ(76, 188).TopPosZ(12, 19))
+	ITEM(Label, lblAge, SetLabel(t_("Age:")).LeftPosZ(12, 60).TopPosZ(38, 19))
+	ITEM(EditIntSpin, age, LeftPosZ(76, 80).TopPosZ(38, 19))
+	ITEM(Option, optSubscribe, SetLabel(t_("Receive notifications")).LeftPosZ(12, 252).TopPosZ(66, 18))
+	ITEM(Button, ok, SetLabel(t_("OK")).RightPosZ(88, 70).BottomPosZ(10, 24))
+	ITEM(Button, cancel, SetLabel(t_("Cancel")).RightPosZ(10, 70).BottomPosZ(10, 24))
+END_LAYOUT

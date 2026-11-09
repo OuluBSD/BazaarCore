@@ -1,0 +1,12 @@
+description "TUI Hello World minimal smoke test\377";
+
+uses
+	CtrlLib;
+
+file
+	AGENTS.md,
+	main.cpp;
+
+mainconfig
+	"TUI" = "GUI TUI",
+	"GUI" = "GUI";
