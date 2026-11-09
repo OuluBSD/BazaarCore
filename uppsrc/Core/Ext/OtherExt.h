@@ -145,12 +145,19 @@ struct FixedArray : Moveable<FixedArray<T,I>> {
 	T vector[I];
 	
 	FixedArray() {}
-	FixedArray(const Nuller& n) {for(int i = 0; i < I; i++) vector[i] = n;}
+	FixedArray(const Nuller&) { Clear(); }
 	int GetCount() const {return size;}
 	T&       operator[](int i)       {ASSERT(i >= 0 && i < size); return vector[i];}
 	const T& operator[](int i) const {ASSERT(i >= 0 && i < size); return vector[i];}
-	void Clear() {for(int i = 0; i < I; i++) vector[i] = Null;}
-	void operator=(const Nuller& n) {for(int i = 0; i < I; i++) vector[i] = n;}
+	void Clear() {
+		for(int i = 0; i < I; i++) {
+			if constexpr (std::is_integral_v<T>)
+				vector[i] = 0;
+			else
+				vector[i] = Null;
+		}
+	}
+	void operator=(const Nuller&) { Clear(); }
 	void operator=(const T& value) {for(int i = 0; i < I; i++) this->vector[i] = value;}
 	T& Top() {return vector[I-1];}
 	
