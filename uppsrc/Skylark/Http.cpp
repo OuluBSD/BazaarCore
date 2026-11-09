@@ -9,6 +9,7 @@ Http::Http(SkylarkApp& app)
 :	app(app)
 {
 	code = 200;
+	response_set = false;
 	content_type = "text/html; charset=UTF-8";
 	session_dirty = false;
 	lang = LNG_ENGLISH;
@@ -19,7 +20,7 @@ Http::Http(SkylarkApp& app)
 }
 
 Http::Http()
-:	app(SkylarkApp::TheApp())
+:	app(SkylarkApp::TheApp()), response_set(false)
 {
 	rsocket = NULL;
 }
@@ -70,7 +71,7 @@ String HttpResponse(int code, const char *phrase, const String& data, const char
 
 Http& Http::SetRawCookie(const char *id, const String& value, Time expires,
                          const char *path, const char *domain, bool secure,
-                         bool httponly)
+                         bool httponly, const char *samesite)
 {
 	if(*id == '.')
 		id++;
@@ -87,6 +88,8 @@ Http& Http::SetRawCookie(const char *id, const String& value, Time expires,
 		c << "; Secure";
 	if(httponly)
 		c << "; HttpOnly";
+	if(samesite && *samesite)
+		c << "; SameSite=" << samesite;
 	c << "\r\n";
 	LLOG(c);
 	return *this;
@@ -131,12 +134,14 @@ Http& Http::Content(const char *s, const Value& data)
 {
 	content_type = s;
 	response = HttpAsString(data);
+	response_set = true;
 	return *this;
 }
 
 Http& Http::operator<<(const Value& s)
 {
 	response << HttpAsString(s);
+	response_set = true;
 	return *this;
 }
 
@@ -144,13 +149,15 @@ Http& Http::SendFile(const Upp::String& filepath, int chunksize)
 {
 	file_to_send = filepath;
 	chunk_size = chunksize;
+	response_set = true;
 	return *this;
 }
 
 Http& Http::SetCookie(const char *id, const String& value, Time expires,
-                      const char *path, const char *domain, bool secure, bool httponly)
+                      const char *path, const char *domain, bool secure, bool httponly,
+                      const char *samesite)
 {
-	return SetRawCookie(id, UrlEncode(value), expires, path, domain, secure);
+	return SetRawCookie(id, UrlEncode(value), expires, path, domain, secure, httponly, samesite);
 }
 
 Http& Http::SetHeader(const char *header, const char *data)
@@ -387,6 +394,7 @@ Http& Http::RenderResult(const char *template_name)
 {
 	LTIMING("Render");
 	response << UPP::Render(GetTemplate(template_name), this, var.GetValues());
+	response_set = true;
 	return *this;
 }
 
@@ -425,6 +433,7 @@ Http& Http::Ux(const char *id, const String& text)
 	if(response.GetCount())
 		response << '\1';
 	response << id << ':' << text;
+	response_set = true;
 	return *this;
 }
 

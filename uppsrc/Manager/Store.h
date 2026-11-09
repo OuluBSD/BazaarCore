@@ -14,6 +14,7 @@ public:
 	ManagerStore();
 
 	String RootDir() const     { return root_dir; }
+	void SetRootDir(const String& dir);
 	String ProjectsDir() const { return AppendFileName(root_dir, "projects"); }
 
 	// Loads all projects (each project subtree fully). Returns false if a
