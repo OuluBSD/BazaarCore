@@ -108,6 +108,30 @@ jobs:
         run: |
           ./BazaarCore/bin/Manager --help
 
+      - name: Build & Test QtfReader (${{ matrix.bm }})
+        run: |
+          cd BazaarCore
+          uppbuilder uppsrc/QtfReader -m ${{ matrix.bm }} -v
+          ./bin/QtfReader --help
+
+      - name: Build & Test dbg (${{ matrix.bm }})
+        run: |
+          cd BazaarCore
+          uppbuilder uppsrc/dbg -m ${{ matrix.bm }} -v
+          ./bin/dbg --help
+          ./bin/dbg --backends
+
+      - name: Build & Test PlotLibExample (${{ matrix.bm }})
+        run: |
+          cd BazaarCore
+          uppbuilder examples/PlotLibExample -m ${{ matrix.bm }} -v
+          ./bin/PlotLibExample
+
+      - name: Build TabbedTerminalExample (${{ matrix.bm }})
+        run: |
+          cd BazaarCore
+          uppbuilder TabbedTerminalExample -m ${{ matrix.bm }} -v
+
   build-windows:
     name: Windows (windows-latest - MSVC)
     runs-on: windows-latest
@@ -206,3 +230,31 @@ jobs:
         run: |
           if exist "C:\vcpkg\installed\x64-windows\bin" copy /y "C:\vcpkg\installed\x64-windows\bin\*.dll" BazaarCore\bin\
           BazaarCore\bin\Manager.exe --help
+
+      - name: Build & Test QtfReader (MSVC)
+        shell: cmd
+        run: |
+          cd BazaarCore
+          uppbuilder.exe uppsrc/QtfReader -m MSVS22x64 -v
+          bin\QtfReader.exe --help
+
+      - name: Build & Test dbg (MSVC)
+        shell: cmd
+        run: |
+          cd BazaarCore
+          uppbuilder.exe uppsrc/dbg -m MSVS22x64 -v
+          bin\dbg.exe --help
+          bin\dbg.exe --backends
+
+      - name: Build & Test PlotLibExample (MSVC)
+        shell: cmd
+        run: |
+          cd BazaarCore
+          uppbuilder.exe examples/PlotLibExample -m MSVS22x64 -v
+          bin\PlotLibExample.exe
+
+      - name: Build TabbedTerminalExample (MSVC)
+        shell: cmd
+        run: |
+          cd BazaarCore
+          uppbuilder.exe TabbedTerminalExample -m MSVS22x64 -v
