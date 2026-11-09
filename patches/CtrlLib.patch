@@ -1,0 +1,716 @@
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/Button.cpp CtrlLib_b/Button.cpp
+--- a/Button.cpp	2026-03-14 17:37:18.827910300 +0200
++++ b/Button.cpp	2026-11-09 21:19:49.684236871 +0200
+@@ -360,8 +360,31 @@
+ 	if(monoimg)
+ 		dl.lcolor = st.monocolor[visualstate];
+ 	bool push = visualstate == CTRL_PRESSED;
++#ifdef PLATFORM_TUI
++	Size cell = TuiCellSize();
++	int tx = r.left + 3 + push * st.pressoffset.x;
++	int tcx = r.GetWidth() - 6;
++	int ty = r.top + 3 + push * st.pressoffset.y;
++	int tcy = r.GetHeight() - 6;
++	if(cell.cy > 0 && cell.cx > 0) {
++		TuiDraw *td = dynamic_cast<TuiDraw*>(&w);
++		Point off = td ? td->GetOffset() : (ctrl ? ctrl->GetScreenRect().TopLeft() : Point(0, 0));
++		Rect pixel = r + off;
++		Rect cellrect = Rect(FloorDiv(pixel.left, cell.cx), FloorDiv(pixel.top, cell.cy),
++		                     CeilDiv(pixel.right, cell.cx), CeilDiv(pixel.bottom, cell.cy));
++		Size txtsz = *label ? GetSmartTextSize(label, dl.font) : Size(0, 0);
++		int text_cy = max(cell.cy, txtsz.cy);
++		int text_rows = CeilDiv(text_cy, cell.cy);
++		int total_rows = max(1, cellrect.Height());
++		int start_row = cellrect.top + max(0, (total_rows - text_rows) / 2);
++		ty = start_row * cell.cy - off.y;
++		tcy = text_cy;
++	}
++	dl.Paint(w, tx, ty, tcx, tcy);
++#else
+ 	dl.Paint(w, r.left + 3 + push * st.pressoffset.x, r.top + 3 + push * st.pressoffset.y,
+ 	         r.GetWidth() - 6, r.GetHeight() - 6);
++#endif
+ 	if(focus)
+ 		DrawFocus(w, r.Deflated(st.focusmargin));
+ }
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/Ch.cpp CtrlLib_b/Ch.cpp
+--- a/Ch.cpp	2026-10-31 17:16:38.869507800 +0200
++++ b/Ch.cpp	2026-11-09 21:19:49.684114994 +0200
+@@ -878,6 +878,14 @@
+ 
+ Vector<Tuple<void (*)(), String>> GetAllChSkins()
+ {
++#ifdef PLATFORM_TUI
++	return Vector<Tuple<void (*)(), String>> {
++		{ ChHostSkin, "Host platform" },
++		{ ChTuiDarkSkin, "TUI Dark" },
++		{ ChTuiLightSkin, "TUI Light" },
++		{ ChTuiAnsi16Skin, "TUI ANSI 16" },
++	};
++#else
+ 	return Vector<Tuple<void (*)(), String>> {
+ 		{ ChHostSkin, "Host platform" },
+ 	    { ChClassicSkin, "Classic" },
+@@ -888,6 +896,7 @@
+ 		{ ChFlatGraySkin, "Flat Gray" },
+ 		{ ChFlatDarkSkin, "Flat Dark" }
+ 	};
++#endif
+ }
+ 
+ }
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/Ch.h CtrlLib_b/Ch.h
+--- a/Ch.h	2026-10-31 17:16:38.869507800 +0200
++++ b/Ch.h	2026-11-09 21:19:49.684022101 +0200
+@@ -1,6 +1,13 @@
+ void ChBaseSkin();
+ 
+ void ChHostSkin();
++
++#ifdef PLATFORM_TUI
++void ChTuiDarkSkin();
++void ChTuiLightSkin();
++void ChTuiAnsi16Skin();
++void ChTuiApplyCtrlLib(bool dark, bool ansi16);
++#endif
+ void ChClassicSkin();
+ void ChStdSkin();
+ void ChDarkSkin();
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/ChTui.cpp CtrlLib_b/ChTui.cpp
+--- a/ChTui.cpp	1970-01-01 02:00:00.000000000 +0200
++++ b/ChTui.cpp	2026-09-16 00:58:38.170583800 +0300
+@@ -0,0 +1,352 @@
++#include "CtrlLib.h"
++
++#ifdef PLATFORM_TUI
++
++namespace Upp {
++
++// CtrlCoreTUI 08/01 (gate_widgets): CtrlLib widget ChStyle overrides for TUI.
++
++void ChTuiApplyCtrlLib(bool dark, bool ansi16)
++{
++	GUI_PopUpEffect_Write(GUIEFFECT_NONE);
++	GUI_DropShadows_Write(0);
++
++	Size cell = TuiCellSize();
++
++	// 1. Button styles
++	{
++		Button::Style& bs = Button::StyleNormal().Write();
++		Color btn_normal = dark ? (ansi16 ? Color::Special(8) : Color(52, 52, 52))
++		                        : Color(245, 245, 245);
++		bs.look[CTRL_NORMAL] = btn_normal;
++		bs.look[CTRL_HOT] = SColorHighlight();
++		bs.look[CTRL_PRESSED] = SColorHighlight();
++		bs.look[CTRL_DISABLED] = SColorFace();
++		bs.textcolor[CTRL_NORMAL] = SColorText();
++		bs.textcolor[CTRL_HOT] = SColorHighlightText();
++		bs.textcolor[CTRL_PRESSED] = SColorHighlightText();
++		bs.textcolor[CTRL_DISABLED] = SColorDisabled();
++		bs.monocolor[CTRL_NORMAL] = SColorText();
++		bs.monocolor[CTRL_HOT] = SColorHighlightText();
++		bs.monocolor[CTRL_PRESSED] = SColorHighlightText();
++		bs.monocolor[CTRL_DISABLED] = SColorDisabled();
++		bs.focusmargin = 0;
++		bs.pressoffset = Point(0, 0);
++		bs.overpaint = 0;
++		bs.transparent = false;
++		bs.font = StdFont();
++
++		Button::Style& ok = Button::StyleOk().Write();
++		ok = bs;
++		ok.look[CTRL_NORMAL] = SColorHighlight();
++		ok.textcolor[CTRL_NORMAL] = SColorHighlightText();
++		ok.monocolor[CTRL_NORMAL] = SColorHighlightText();
++
++		Button::Style& be = Button::StyleEdge().Write();
++		be = bs;
++
++		Button::Style& bsc = Button::StyleScroll().Write();
++		bsc = bs;
++	}
++
++	// 2. ScrollBar style
++	{
++		ScrollBar::Style& sb = ScrollBar::StyleDefault().Write();
++		sb.barsize = cell.cx;
++		sb.arrowsize = cell.cy;
++		sb.thumbmin = cell.cy;
++		sb.overthumb = 0;
++		sb.thumbwidth = cell.cx;
++		sb.bgcolor = SColorFace();
++		for(int i = 0; i < 4; i++) {
++			sb.vupper[i] = sb.vlower[i] = sb.hupper[i] = sb.hlower[i] = SColorFace();
++			sb.vthumb[i] = sb.hthumb[i] = (i == CTRL_HOT || i == CTRL_PRESSED) ? SColorHighlight() : SColorShadow();
++		}
++		sb.up = sb.down = sb.left = sb.right = Button::StyleNormal();
++	}
++
++	// 3. MenuBar style
++	{
++		MenuBar::Style& ms = MenuBar::StyleDefault().Write();
++		ms.look = SColorFace();
++		ms.arealook = SColorFace();
++		ms.topitem[0] = Null;
++		ms.topitem[1] = SColorHighlight();
++		ms.topitem[2] = SColorHighlight();
++		ms.topitemtext[0] = SColorText();
++		ms.topitemtext[1] = SColorHighlightText();
++		ms.topitemtext[2] = SColorHighlightText();
++		ms.item = SColorHighlight();
++		ms.menutext = SColorText();
++		ms.itemtext = SColorHighlightText();
++		ms.popupframe = ChBorder((const ColorF *)nullptr, SColorShadow());
++		ms.popupbody = SColorFace();
++		ms.popupiconbar = Null;
++		ms.pullshift = Point(0, 0);
++		ms.leftgap = cell.cx;
++		ms.textgap = 0;
++		ms.lsepm = 0;
++		ms.rsepm = 0;
++		ms.maxiconsize = Size(cell.cx, cell.cy);
++		ms.separator.l1 = ms.separator.l2 = SColorShadow();
++		ms.breaksep.l1 = ms.breaksep.l2 = SColorShadow();
++	}
++
++	// 4. StatusBar style
++	{
++		StatusBar::Style& st = StatusBar::StyleDefault().Write();
++		st.look = SColorFace();
++	}
++
++	// 5. Splitter style
++	{
++		Splitter::Style& ss = Splitter::StyleDefault().Write();
++		ss.width = cell.cx;
++		ss.vert[0] = ss.vert[1] = SColorFace();
++		ss.horz[0] = ss.horz[1] = SColorFace();
++		ss.dots = false;
++	}
++
++	// 6. EditField style
++	{
++		EditField::Style& es = EditField::StyleDefault().Write();
++		es.paper = SColorPaper();
++		es.disabled = SColorFace();
++		es.focus = SColorPaper();
++		es.invalid = Color(128, 0, 0);
++		es.text = SColorText();
++		es.textdisabled = SColorDisabled();
++		es.selected = SColorHighlight();
++		es.selectedtext = SColorHighlightText();
++		es.selected0 = SColorShadow();
++		es.selectedtext0 = SColorText();
++		for(int i = 0; i < 4; i++)
++			es.edge[i] = Null;
++		es.activeedge = false;
++		es.vfm = 0;
++	}
++
++	// 7. HeaderCtrl style
++	{
++		HeaderCtrl::Style& hs = HeaderCtrl::StyleDefault().Write();
++		for(int i = 0; i < 4; i++)
++			hs.look[i] = (i == CTRL_HOT || i == CTRL_PRESSED) ? SColorHighlight() : SColorFace();
++		hs.pressoffset = false;
++		hs.gridadjustment = 0;
++	}
++
++	// 8. TabCtrl style
++	{
++		TabCtrl::Style& ts = TabCtrl::StyleDefault().Write();
++		ts.tabheight = cell.cy;
++		ts.margin = 0;
++		ts.extendleft = 0;
++		ts.sel = Rect(0, 0, 0, 0);
++		ts.edge = Rect(0, 0, 0, 0);
++		ts.body = SColorFace();
++		for(int i = 0; i < 4; i++) {
++			ts.normal[i] = ts.first[i] = ts.last[i] = ts.both[i] =
++				(i == CTRL_HOT || i == CTRL_PRESSED) ? SColorHighlight() : SColorFace();
++			ts.text_color[i] = (i == CTRL_HOT || i == CTRL_PRESSED) ? SColorHighlightText()
++			                 : (i == CTRL_DISABLED) ? SColorDisabled() : SColorText();
++		}
++		ts.font = StdFont();
++	}
++
++	// 9. MultiButton style (and DropList base)
++	{
++		MultiButton::Style& mbs = MultiButton::StyleDefault().Write();
++		mbs.stdwidth = cell.cx * 2;
++		for(int i = 0; i < 4; i++) {
++			mbs.look[i] = SColorFace();
++			mbs.left[i] = mbs.lmiddle[i] = mbs.right[i] = mbs.rmiddle[i] = mbs.simple[i] = mbs.trivial[i] = SColorFace();
++			mbs.monocolor[i] = mbs.fmonocolor[i] = SColorText();
++			mbs.edge[i] = Null;
++		}
++		mbs.activeedge = false;
++		mbs.border = 0;
++		mbs.trivialborder = 0;
++		mbs.pressoffset = Point(0, 0);
++		mbs.sepm = 0;
++		mbs.overpaint = 0;
++		mbs.loff = mbs.roff = 0;
++		mbs.margin = Rect(0, 0, 0, 0);
++		mbs.paper = SColorPaper();
++	}
++
++	// 10. ToolBar & ToolButton styles
++	{
++		ToolBar::Style& tbs = ToolBar::StyleDefault().Write();
++		tbs.look = SColorFace();
++		tbs.arealook = SColorFace();
++		tbs.buttonminsize = Size(cell.cx * 4, cell.cy);
++		tbs.maxiconsize = Size(cell.cx * 2, cell.cy);
++		tbs.buttonkind = ToolButton::RIGHTLABEL;
++		tbs.separator.l1 = tbs.separator.l2 = SColorShadow();
++		tbs.breaksep.l1 = tbs.breaksep.l2 = SColorShadow();
++
++		ToolButton::Style& tbtn = ToolButton::StyleDefault().Write();
++		for(int i = 0; i < 6; i++) {
++			tbtn.look[i] = (i == 1 || i == 2 || i == 4 || i == 5) ? SColorHighlight() : Null;
++			tbtn.textcolor[i] = (i == 1 || i == 2 || i == 4 || i == 5) ? SColorHighlightText() : SColorText();
++			tbtn.offset[i] = Point(0, 0);
++		}
++		tbtn.overpaint = 0;
++		tbtn.font = StdFont();
++	}
++
++	// 11. ProgressIndicator style
++	{
++		ProgressIndicator::Style& ps = ProgressIndicator::StyleDefault().Write();
++		ps.classic = false;
++		ps.bound = false;
++		ps.nomargins = true;
++		Color trough = dark ? (ansi16 ? Color::Special(0) : Color(18, 18, 18))
++		                    : Color(210, 210, 210);
++		ps.hlook = ps.vlook = trough;
++		ps.hchunk = ps.vchunk = SColorHighlight();
++	}
++
++	// 12. Default icon glyph substitution table (Phase 09/02)
++	{
++		auto Reg = [](const Image& img, const char *glyph_utf8, Color ink = Null) {
++			if(img.IsEmpty()) return;
++			TuiRegisterIconGlyph(img, glyph_utf8, ink);
++			TuiRegisterIconGlyph(DisabledImage(img), glyph_utf8, SColorDisabled());
++		};
++
++		auto RegNerd = [](const Image& img, const char *glyph_utf8, Color ink = Null) {
++			if(img.IsEmpty()) return;
++			TuiRegisterNerdFontGlyph(img, glyph_utf8, ink);
++			TuiRegisterNerdFontGlyph(DisabledImage(img), glyph_utf8, SColorDisabled());
++		};
++
++		// --- Tier 1: Standard Unicode glyphs ---
++		// Checkboxes
++		Reg(CtrlsImg::O0(), "☐");
++		Reg(CtrlsImg::O0h(), "☐");
++		Reg(CtrlsImg::O0p(), "☐");
++		Reg(CtrlsImg::O0d(), "☐", SColorDisabled());
++		Reg(CtrlsImg::O1(), "☑");
++		Reg(CtrlsImg::O1h(), "☑");
++		Reg(CtrlsImg::O1p(), "☑");
++		Reg(CtrlsImg::O1d(), "☑", SColorDisabled());
++		Reg(CtrlsImg::O2(), "▣");
++		Reg(CtrlsImg::O2h(), "▣");
++		Reg(CtrlsImg::O2p(), "▣");
++		Reg(CtrlsImg::O2d(), "▣", SColorDisabled());
++
++		// Radio buttons
++		Reg(CtrlsImg::S0(), "○");
++		Reg(CtrlsImg::S0h(), "○");
++		Reg(CtrlsImg::S0p(), "○");
++		Reg(CtrlsImg::S0d(), "○", SColorDisabled());
++		Reg(CtrlsImg::S1(), "●");
++		Reg(CtrlsImg::S1h(), "●");
++		Reg(CtrlsImg::S1p(), "●");
++		Reg(CtrlsImg::S1d(), "●", SColorDisabled());
++
++		// Menu check/radio and submenu arrow
++		Reg(CtrlImg::MenuCheck0(), " ");
++		Reg(CtrlImg::MenuCheck1(), "✓");
++		Reg(CtrlImg::MenuRadio0(), " ");
++		Reg(CtrlImg::MenuRadio1(), "●");
++		Reg(CtrlImg::right_arrow(), "►");
++
++		// Arrows
++		Reg(CtrlsImg::UA(), "▲");
++		Reg(CtrlsImg::DA(), "▼");
++		Reg(CtrlsImg::LA(), "◄");
++		Reg(CtrlsImg::RA(), "►");
++		Reg(CtrlsImg::kUA(), "▲");
++		Reg(CtrlsImg::kDA(), "▼");
++		Reg(CtrlsImg::kLA(), "◄");
++		Reg(CtrlsImg::kRA(), "►");
++		Reg(CtrlsImg::SpU(), "▲");
++		Reg(CtrlsImg::SpD(), "▼");
++		Reg(CtrlsImg::kSpU(), "▲");
++		Reg(CtrlsImg::kSpD(), "▼");
++
++		// Size grip
++		Reg(CtrlsImg::SizeGrip(), "◢", SColorShadow());
++
++		// Tree expanders
++		Reg(CtrlImg::treeplus(), "⊞");
++		Reg(CtrlImg::treeminus(), "⊟");
++		Reg(CtrlImg::cross(), "✕");
++
++		// Standard tool icons
++		Reg(CtrlImg::open(), "▤");
++		Reg(CtrlImg::open__UHD(), "▤");
++		Reg(CtrlImg::save(), "▼");
++		Reg(CtrlImg::save__UHD(), "▼");
++		Reg(CtrlImg::save_as(), "▼");
++		Reg(CtrlImg::save_as__UHD(), "▼");
++		Reg(CtrlImg::new_doc(), "+");
++		Reg(CtrlImg::new_doc__UHD(), "+");
++		Reg(CtrlImg::undo(), "↶");
++		Reg(CtrlImg::undo__UHD(), "↶");
++		Reg(CtrlImg::redo(), "↷");
++		Reg(CtrlImg::redo__UHD(), "↷");
++		Reg(CtrlImg::cut(), "✂");
++		Reg(CtrlImg::cut__UHD(), "✂");
++		Reg(CtrlImg::copy(), "⎘");
++		Reg(CtrlImg::copy__UHD(), "⎘");
++		Reg(CtrlImg::paste(), "⧉");
++		Reg(CtrlImg::paste__UHD(), "⧉");
++		Reg(CtrlImg::remove(), "✗");
++		Reg(CtrlImg::remove__UHD(), "✗");
++		Reg(CtrlImg::print(), "⎙");
++		Reg(CtrlImg::print__UHD(), "⎙");
++		Reg(CtrlImg::sort(), "⇅");
++		Reg(CtrlImg::sort__UHD(), "⇅");
++		Reg(CtrlImg::plus(), "+");
++		Reg(CtrlImg::minus(), "-");
++		Reg(CtrlImg::exclamation(), "!", SColorHighlightText());
++		Reg(CtrlImg::information(), "i", SColorHighlightText());
++		Reg(CtrlImg::question(), "?", SColorHighlightText());
++		Reg(CtrlImg::error(), "✗", Color(255, 0, 0));
++		Reg(CtrlImg::smallcheck(), "✓");
++		Reg(CtrlImg::smallup(), "▲");
++		Reg(CtrlImg::smalldown(), "▼");
++		Reg(CtrlImg::smallleft(), "◄");
++		Reg(CtrlImg::smallright(), "►");
++
++		// --- Tier 2: Nerd Fonts PUA glyphs (active with UPP_TUI_NERDFONT=1) ---
++		RegNerd(CtrlsImg::O0(), "\xEF\x82\x96"); // U+F096
++		RegNerd(CtrlsImg::O1(), "\xEF\x81\x86"); // U+F046
++		RegNerd(CtrlsImg::S0(), "\xEF\x84\x8C"); // U+F10C
++		RegNerd(CtrlsImg::S1(), "\xEF\x86\x92"); // U+F192
++		RegNerd(CtrlImg::MenuCheck1(), "\xEF\x81\x86"); // U+F046 check
++		RegNerd(CtrlImg::MenuRadio1(), "\xEF\x86\x92"); // U+F192 dot circle
++		RegNerd(CtrlImg::right_arrow(), "\xEF\x81\x94"); // U+F054 chevron right
++		RegNerd(CtrlImg::treeplus(), "\xEF\x83\xBE"); // U+F0FE
++		RegNerd(CtrlImg::treeminus(), "\xEF\x85\x86"); // U+F146
++		RegNerd(CtrlImg::open(), "\xEF\x81\xBC"); // U+F07C
++		RegNerd(CtrlImg::open__UHD(), "\xEF\x81\xBC");
++		RegNerd(CtrlImg::save(), "\xEF\x83\x87"); // U+F0C7
++		RegNerd(CtrlImg::save__UHD(), "\xEF\x83\x87");
++		RegNerd(CtrlImg::save_as(), "\xEF\x83\x87");
++		RegNerd(CtrlImg::save_as__UHD(), "\xEF\x83\x87");
++		RegNerd(CtrlImg::new_doc(), "\xEF\x80\x96"); // U+F016
++		RegNerd(CtrlImg::new_doc__UHD(), "\xEF\x80\x96");
++		RegNerd(CtrlImg::undo(), "\xEF\x83\xA2"); // U+F0E2
++		RegNerd(CtrlImg::undo__UHD(), "\xEF\x83\xA2");
++		RegNerd(CtrlImg::redo(), "\xEF\x80\x9E"); // U+F01E
++		RegNerd(CtrlImg::redo__UHD(), "\xEF\x80\x9E");
++		RegNerd(CtrlImg::cut(), "\xEF\x83\x84"); // U+F0C4
++		RegNerd(CtrlImg::cut__UHD(), "\xEF\x83\x84");
++		RegNerd(CtrlImg::copy(), "\xEF\x83\x85"); // U+F0C5
++		RegNerd(CtrlImg::copy__UHD(), "\xEF\x83\x85");
++		RegNerd(CtrlImg::paste(), "\xEF\x83\xAA"); // U+F0EA
++		RegNerd(CtrlImg::paste__UHD(), "\xEF\x83\xAA");
++		RegNerd(CtrlImg::remove(), "\xEF\x80\x8D"); // U+F00D
++		RegNerd(CtrlImg::remove__UHD(), "\xEF\x80\x8D");
++		RegNerd(CtrlImg::print(), "\xEF\x80\xAF"); // U+F02F
++		RegNerd(CtrlImg::print__UHD(), "\xEF\x80\xAF");
++	}
++}
++
++}
++
++#endif
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/CtrlLibInit.cpp CtrlLib_b/CtrlLibInit.cpp
+--- a/CtrlLibInit.cpp	2025-06-15 18:04:36.545814600 +0300
++++ b/CtrlLibInit.cpp	2026-11-09 21:19:49.684176107 +0200
+@@ -19,6 +19,13 @@
+ 	};
+ 	CtrlSetDefaultSkin(skin);
+ 	
++#ifdef PLATFORM_TUI
++	ChTuiHookCtrlLib = [](bool dark, bool ansi16) {
++		ChTuiApplyCtrlLib(dark, ansi16);
++	};
++	ChHostSkin();
++#endif
++	
+ 	extGetSmartTextSize = GetSmartTextSize;
+ 
+ 	extDrawSmartText = [](Draw& draw, int x, int y, int cx, const char *text, Font font,
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/CtrlLib.upp CtrlLib_b/CtrlLib.upp
+--- a/CtrlLib.upp	2026-10-31 17:16:38.870507800 +0200
++++ b/CtrlLib.upp	2026-11-09 21:19:49.683964341 +0200
+@@ -116,6 +116,7 @@
+ 	Chameleon readonly separator,
+ 	Ch.h,
+ 	Ch.cpp,
++	ChTui.cpp,
+ 	Ctrls.iml,
+ 	XPTheme.dli,
+ 	ChWin32.cpp,
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/CtrlUtil.cpp CtrlLib_b/CtrlUtil.cpp
+--- a/CtrlUtil.cpp	2026-10-31 17:16:38.870507800 +0200
++++ b/CtrlUtil.cpp	2026-11-09 21:19:49.684642662 +0200
+@@ -10,8 +10,12 @@
+ 
+ void Animate(Ctrl& c, const Rect& target, int type)
+ {
++#ifdef PLATFORM_TUI
++	type = GUIEFFECT_NONE;
++#else
+ 	if(type < 0)
+ 		type = GUI_PopUpEffect();
++#endif
+ 	Rect r0 = c.GetRect();
+ 	dword time0 = msecs();
+ 	int anitime = 150;
+@@ -57,6 +61,10 @@
+ 
+ void Animate(Event<double> update, int duration_ms)
+ {
++#ifdef PLATFORM_TUI
++	update(1);
++	return;
++#else
+ 	if(duration_ms < 1)
+ 		return;
+ 
+@@ -72,6 +80,7 @@
+         Ctrl::GuiSleep(0);
+     }
+     update(1);
++#endif
+ }
+ 
+ void Animate(Vector<Ptr<Ctrl>>& ctrls, const Vector<Rect>& targets, int duration_ms)
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/LabelBase.cpp CtrlLib_b/LabelBase.cpp
+--- a/LabelBase.cpp	2026-03-14 17:37:18.831243700 +0200
++++ b/LabelBase.cpp	2026-11-09 21:19:49.684580711 +0200
+@@ -418,6 +418,9 @@
+ }
+ 
+ void DrawFocus(Draw& w, int x, int y, int cx, int cy, Color c) {
++#ifdef PLATFORM_TUI
++	TuiDrawFocus(w, RectC(x, y, cx, cy), c);
++#else
+ 	w.Clipoff(x, y, cx, cy);
+ 	for(int a = 0; a < cx; a += CtrlImg::focus_h().GetWidth()) {
+ 		w.DrawImage(a, 0, CtrlImg::focus_h(), c);
+@@ -428,6 +431,7 @@
+ 		w.DrawImage(cx - DPI(1), a, CtrlImg::focus_v(), c);
+ 	}
+ 	w.End();
++#endif
+ }
+ 
+ void DrawFocus(Draw& w, const Rect& r, Color c) {
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/MenuItem.cpp CtrlLib_b/MenuItem.cpp
+--- a/MenuItem.cpp	2026-03-14 17:37:18.834577100 +0200
++++ b/MenuItem.cpp	2026-11-09 21:19:49.684335001 +0200
+@@ -339,7 +339,9 @@
+ 		case RADIO1: li = CtrlImg::MenuRadio1(); break;
+ 		}
+ 	}
++#ifndef PLATFORM_TUI
+ 	li = CachedRescale(li, min(li.GetSize(), maxiconsize));
++#endif
+ 	Size isz = li.GetSize();
+ 	int iy = (sz.cy - isz.cy) / 2;
+ 	bool chk = false;
+@@ -392,9 +394,16 @@
+ 	}
+ 	Size lsz = min(maxiconsize, licon.GetSize());
+ 	Size rsz = ricon.GetSize();
++#ifdef PLATFORM_TUI
++	Size cell = TuiCellSize();
++	return AddFrameSize(Size(max(lsz.cx, leftgap) + sz1.cx + max(sz2.cx, (rsz.cx ? cell.cx : 0))
++	                         + max(rsz.cx, cell.cx) + textgap + cell.cx,
++	                         cell.cy));
++#else
+ 	return AddFrameSize(Size(max(lsz.cx, leftgap) + sz1.cx + max(sz2.cx, (rsz.cx ? Zx(16) : 0))
+ 	                         + max(rsz.cx, Zx(16)) + textgap + Zx(10),
+ 	                         max(max(lsz.cy, rsz.cy) + Zy(4), sz1.cy + Zy(6))));
++#endif
+ }
+ 
+ void MenuItem::LeftUp(Point, dword)
+@@ -540,9 +549,14 @@
+ 
+ Size TopSubMenuItem::GetMinSize() const
+ {
++#ifdef PLATFORM_TUI
++	Size cell = TuiCellSize();
++	return AddFrameSize(Size(GetTextSize(text, font).cx + 2 * cell.cx, cell.cy));
++#else
+ 	Size sz = Zsz(10, 5);
+ 	sz.cx = (sz.cx + 1) & 0xfffffffe; // We need even number, otherwise it looks asymmetric
+ 	return AddFrameSize(GetTextSize(text, font) + sz);
++#endif
+ }
+ 
+ int  TopSubMenuItem::GetState()
+@@ -693,12 +707,21 @@
+ 
+ Size TopMenuItem::GetMinSize() const
+ {
++#ifdef PLATFORM_TUI
++	Size cell = TuiCellSize();
++	return AddFrameSize(Size(GetTextSize(text, StdFont()).cx + 2 * cell.cx, cell.cy));
++#else
+ 	return AddFrameSize(GetTextSize(text, StdFont()) + Zsz(10, 5));
++#endif
+ }
+ 
+ int TopMenuItem::GetStdHeight(Font font)
+ {
++#ifdef PLATFORM_TUI
++	return TuiCellSize().cy;
++#else
+ 	return font.GetCy() + Zy(5);
++#endif
+ }
+ 
+ void TopMenuItem::SyncState()
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/PrinterJob.cpp CtrlLib_b/PrinterJob.cpp
+--- a/PrinterJob.cpp	2026-03-14 17:37:18.834577100 +0200
++++ b/PrinterJob.cpp	2026-11-09 21:19:49.684708106 +0200
+@@ -478,4 +478,47 @@
+ 
+ #endif
+ 
++// Stub implementations for backends without printing support.
++// VIRTUALGUI provides its own inline PrinterJob in VirtualGui.h, so do not define it here.
++#if !defined(VIRTUALGUI) && (defined(GUI_FB) || (!defined(GUI_WIN) && !defined(PLATFORM_X11) && !defined(PLATFORM_COCOA)))
++
++PrinterJob::PrinterJob(const char *_name)
++{
++	name = _name;
++	landscape = false;
++	from = to = 1;
++	current = 1;
++}
++
++PrinterJob::~PrinterJob()
++{
++}
++
++Draw& PrinterJob::GetDraw()
++{
++	if(!draw)
++		draw = new NilDraw;
++	return *draw;
++}
++
++PrinterJob& PrinterJob::MinMaxPage(int minpage, int maxpage)
++{
++	from = minpage;
++	to = maxpage;
++	return *this;
++}
++
++PrinterJob& PrinterJob::CurrentPage(int i)
++{
++	current = i;
++	return *this;
++}
++
++bool PrinterJob::Execute()
++{
++	return false;
++}
++
++#endif
++
+ }
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/StatusBar.cpp CtrlLib_b/StatusBar.cpp
+--- a/StatusBar.cpp	2024-05-09 10:31:07.887163100 +0300
++++ b/StatusBar.cpp	2026-11-09 21:19:49.684509121 +0200
+@@ -209,7 +209,11 @@
+ 
+ void StatusBar::TopFrame::FrameLayout(Rect& r)
+ {
++#ifdef PLATFORM_TUI
++	// No top margin in TUI to stay exactly 1 cell high
++#else
+ 	r.top += 2;
++#endif
+ }
+ 
+ void StatusBar::TopFrame::FramePaint(Draw& w, const Rect& r)
+@@ -225,15 +229,25 @@
+ 
+ void StatusBar::TopFrame::FrameAddSize(Size& sz)
+ {
++#ifdef PLATFORM_TUI
++	// No added height in TUI
++#else
+ 	sz.cy += 2;
++#endif
+ }
+ 
+ StatusBar::StatusBar()
+ {
++#ifdef PLATFORM_TUI
++	Height(Draw::GetStdFontCy());
++#else
+ 	Height(Zy(5) + max(16, Draw::GetStdFontCy()));
++#endif
+ 	frame.style = &StyleDefault();
+ 	SetFrame(frame);
++#ifndef PLATFORM_TUI
+ 	AddFrame(grip);
++#endif
+ }
+ 
+ StatusBar::~StatusBar()
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/ToolBar.cpp CtrlLib_b/ToolBar.cpp
+--- a/ToolBar.cpp	2026-03-14 17:37:18.834577100 +0200
++++ b/ToolBar.cpp	2026-11-09 21:19:49.684449754 +0200
+@@ -16,7 +16,11 @@
+ 
+ ToolBar::ToolBar()
+ {
++#ifdef PLATFORM_TUI
++	pane.Margin(0, 0);
++#else
+ 	pane.Margin(2, 3);
++#endif
+ 	lsepm = rsepm = 0;
+ 	ssize = 8;
+ 	lock = 0;
+@@ -114,6 +118,9 @@
+ 
+ int ToolBar::GetStdHeight()
+ {
++#ifdef PLATFORM_TUI
++	return TuiCellSize().cy;
++#endif
+ 	Size sz = StyleDefault().maxiconsize;
+ 	return sz.cy > 10000 ? DPI(22) + 3 : sz.cy + DPI(6) + 3;
+ }
+diff -uNr -x '*.o' -x '*.a' -x '*.obj' CtrlLib_a/ToolButton.cpp CtrlLib_b/ToolButton.cpp
+--- a/ToolButton.cpp	2026-03-14 17:37:18.834577100 +0200
++++ b/ToolButton.cpp	2026-11-09 21:19:49.684394228 +0200
+@@ -243,6 +243,10 @@
+ 	paint_checked = checked;
+ 	Size sz = GetSize();
+ 	UPP::Image image = GetImage();
++#ifdef PLATFORM_TUI
++	if(!text.IsEmpty() && !image.IsEmpty() && !TuiFindIconGlyph(image.GetSerialId()))
++		image.Clear();
++#endif
+ 	Size isz = image.GetSize();
+ //	Ctrl *q = GetParent()->GetParent();
+ //	if(!q || !q->IsTransparent())

@@ -1,0 +1,12 @@
+description "TUI Text Editor example with menu, file dialog, and status bar\377";
+
+uses
+	CtrlLib;
+
+file
+	AGENTS.md,
+	main.cpp;
+
+mainconfig
+	"TUI" = "GUI TUI",
+	"GUI" = "GUI";

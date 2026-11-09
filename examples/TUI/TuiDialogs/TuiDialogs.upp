@@ -1,0 +1,13 @@
+description "TUI modal dialogs, .lay layouts, and nested loops demo\377";
+
+uses
+	CtrlLib;
+
+file
+	AGENTS.md,
+	TuiDialogs.lay,
+	main.cpp;
+
+mainconfig
+	"TUI" = "GUI TUI",
+	"GUI" = "GUI";

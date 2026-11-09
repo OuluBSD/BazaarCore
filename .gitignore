@@ -14,3 +14,4 @@ bin/
 applied-patches/
 patched-uppsrc
 .uppbuilder/
+tmp/

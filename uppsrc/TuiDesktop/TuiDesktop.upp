@@ -1,0 +1,11 @@
+description "TUI VirtualGui desktop host\377";
+
+uses
+	CtrlLib,
+	VirtualGui,
+	DesktopSuite;
+
+file
+	AGENTS.md,
+	TuiDesktop.h,
+	TuiVirtualGui.cpp;
