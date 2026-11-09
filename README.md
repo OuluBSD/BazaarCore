@@ -21,6 +21,10 @@ BazaarCore establishes a clean separation between pristine upstream U++ (`ultima
 - **Foundation Infrastructure (Tier 3)**:
   - `uppsrc/Terminal`: Embedded VT100 / XTerm terminal widget (libvterm-backed).
   - `uppsrc/PtyProcess`: Cross-platform pseudoterminal process execution.
+  - `uppsrc/PlotCtrl` & `uppsrc/PlotLib`: Advanced 2D graphing and plotting controls with headless PNG export.
+  - `uppsrc/QtfReader`: Text extraction engine for U++ QTF formatted documents.
+  - `uppsrc/DebuggersCore` & `uppsrc/dbg`: Headless GDB, LLDB, and Visual Studio debugger runner and session abstractions.
+  - `uppsrc/TuiDesktop`, `uppsrc/VirtualGui3D`, `uppsrc/NetDpy`: Terminal UI desktop, virtual framebuffers, and networked display servers.
   - `uppsrc/ByteVM`: Fast register-based bytecode virtual machine.
   - `uppsrc/Docking`: Advanced multi-docking window framework.
   - `uppsrc/Manager`: High-speed local project, phase, and task tracker.

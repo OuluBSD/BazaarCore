@@ -1,0 +1,29 @@
+description "dbg CLI";
+
+uses
+	Core,
+	DebuggersCore;
+
+file
+	AGENTS.md,
+	dbg.h,
+	Session.h,
+	Session.cpp,
+	Toolchain.h,
+	Toolchain.cpp,
+	BackendFactory.h,
+	BackendFactory.cpp,
+	GdbAdapter.h,
+	GdbAdapter.cpp,
+	LldbAdapter.h,
+	LldbAdapter.cpp,
+	VsAdapter.h,
+	VsAdapter.cpp,
+	JavaAdapter.h,
+	JavaAdapter.cpp,
+	Backend.h,
+	Backend.cpp,
+	main.cpp;
+
+mainconfig
+	"" = "";
