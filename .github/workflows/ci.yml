@@ -61,12 +61,12 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y make clang g++ libbz2-dev libexpat1-dev libfontconfig1-dev libfreetype-dev liblz4-dev liblzma-dev libpcre2-dev libpng-dev libx11-dev libxcb1-dev libxxhash-dev libzstd-dev zlib1g-dev libgtk-3-dev libnotify-dev
+          sudo apt-get install -y make clang g++ libbz2-dev libexpat1-dev libfontconfig1-dev libfreetype-dev liblz4-dev liblzma-dev libpcre2-dev libpng-dev libjpeg-dev libx11-dev libxcb1-dev libxxhash-dev libzstd-dev zlib1g-dev libgtk-3-dev libnotify-dev
 
       - name: Install System Dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install libpng lz4 pcre2 xxhash zstd xz bzip2
+          brew install libpng jpeg-turbo lz4 pcre2 xxhash zstd xz bzip2
           echo "CPATH=/opt/homebrew/include" >> "$GITHUB_ENV"
           echo "LIBRARY_PATH=/opt/homebrew/lib" >> "$GITHUB_ENV"
 
