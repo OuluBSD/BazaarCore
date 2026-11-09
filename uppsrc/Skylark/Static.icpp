@@ -23,6 +23,34 @@ INITBLOCK {
 	Compiler::Register("CachedStatic", CachedStatic);
 };
 
+// Site-scoped static: GET/HEAD only, allowlisted types, containment checked
+// by SkylarkSiteRoots::ResolveStatic, nosniff. Used only while a site root is set.
+static void ServeSiteStatic(Http& http, const String& file)
+{
+	String method = http.GetMethod();
+	if(method != "GET" && method != "HEAD") {
+		http.SetHeader("Allow", "GET, HEAD");
+		http.Response(405, "Method Not Allowed");
+		return;
+	}
+	String path, type;
+	if(!SkylarkSiteRoots::ResolveStatic(file, path, type)) {
+		http.Response(404, "Not found");
+		return;
+	}
+	http.SetHeader("X-Content-Type-Options", "nosniff");
+	if(SkylarkApp::Config().caching > 0) {
+		String tag = GetFileTimeText(path);
+		http.SetHeader("Cache-Control", "public, max-age=2592000");
+		http.SetHeader("ETag", tag);
+		if(http.GetHeader("if-none-match") == tag) {
+			http.Response(304, "Not Modified");
+			return;
+		}
+	}
+	http.Content(type, LoadFile(path));
+}
+
 SKYLARK(ServeStaticPage, "static/**")
 {
 	String file;
@@ -38,7 +66,12 @@ SKYLARK(ServeStaticPage, "static/**")
 			file = file.Mid(q + 1);
 	}
 
-	String path = GetFileOnPath(file, SkylarkSiteRoots::StaticRoot(), false);
+	if(SkylarkSiteRoots::IsOverridden()) {
+		ServeSiteStatic(http, file);
+		return;
+	}
+
+	String path = GetFileOnPath(file, SkylarkApp::Config().path, false);
 	if(!path.GetCount()) {
 		http.Response(404, "Not found");
 		return;

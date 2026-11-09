@@ -62,6 +62,10 @@ public:
 	static bool   IsOverridden();
 	static String TemplateRoot();   // override, else SkylarkApp::Config().path
 	static String StaticRoot();     // override, else SkylarkApp::Config().path
+	// Site-scoped static lookup, used only while a site root is set. rel must be
+	// a plain relative path with an allowed static extension that names a regular
+	// file inside StaticRoot(), after symlink resolution. mime receives the type.
+	static bool   ResolveStatic(const String& rel, String& full, String& mime);
 };
 
 #ifdef BadRequest // X11 macro name clash
