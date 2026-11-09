@@ -20,6 +20,7 @@ file
 	StdLib.icpp,
 	Util readonly separator,
 	Static.icpp,
+	SiteRoots.cpp,
 	Client readonly separator,
 	Base.witz,
 	skylark.js,

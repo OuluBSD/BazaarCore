@@ -67,7 +67,7 @@ const One<Exe>& Renderer::GetTemplate(const char *template_name)
 		LTIMING("MakeSignature");
 		for(int i = 0; i < var.GetCount(); i++)
 			s << var.GetKey(i) << ';';
-		s << ':' << template_name;
+		s << '@' << SkylarkSiteRoots::TemplateRoot() << ':' << template_name;   // site-scoped cache identity
 	}
 	if(!SkylarkApp::Config().use_caching) // Templates get overwritten is not cached, MT hazard
 		s << ';' << Thread::GetCurrentId();	

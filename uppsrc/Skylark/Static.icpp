@@ -13,7 +13,7 @@ Value CachedStatic(const Vector<Value>& arg, const Renderer *)
 	if(SkylarkApp::Config().caching != 2)
 		return "/" + SkylarkApp::Config().static_dir + "/" + file;
 	
-	String path = GetFileOnPath(file, SkylarkApp::Config().path, false);
+	String path = GetFileOnPath(file, SkylarkSiteRoots::StaticRoot(), false);
 	if(path.GetCount())
 		return "/" + SkylarkApp::Config().static_dir + "/ver" + GetFileTimeText(path) + "/" + file;
 	return Null;
@@ -38,7 +38,7 @@ SKYLARK(ServeStaticPage, "static/**")
 			file = file.Mid(q + 1);
 	}
 
-	String path = GetFileOnPath(file, SkylarkApp::Config().path, false);
+	String path = GetFileOnPath(file, SkylarkSiteRoots::StaticRoot(), false);
 	if(!path.GetCount()) {
 		http.Response(404, "Not found");
 		return;

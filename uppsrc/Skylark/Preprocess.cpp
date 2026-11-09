@@ -51,7 +51,7 @@ String LoadTemplate(const char *file, const String& search_path, int lang)
 
 VectorMap<String, String> GetTemplateDefs(const char *file, int lang)
 {
-	String s = LoadTemplate(file, SkylarkApp::Config().path, lang);
+	String s = LoadTemplate(file, SkylarkSiteRoots::TemplateRoot(), lang);
 	VectorMap<String, String> def;
 	int ti = def.FindAdd("MAIN");
 	StringStream ss(s);

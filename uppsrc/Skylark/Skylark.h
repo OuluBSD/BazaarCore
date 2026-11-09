@@ -51,6 +51,19 @@ struct SkylarkConfig {
 	int                       caching;
 };
 
+// Per-request site roots: a seam for embedding gateways (e.g. WebEngine). The
+// gateway sets them on its request thread before dispatch and clears them
+// afterwards. When unset, template and static lookup use the app-global
+// SkylarkConfig::path, exactly as before.
+class SkylarkSiteRoots {
+public:
+	static void   Set(const String& template_root, const String& static_root);
+	static void   Clear();
+	static bool   IsOverridden();
+	static String TemplateRoot();   // override, else SkylarkApp::Config().path
+	static String StaticRoot();     // override, else SkylarkApp::Config().path
+};
+
 #ifdef BadRequest // X11 macro name clash
 #undef BadRequest
 #endif
