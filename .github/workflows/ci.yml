@@ -132,6 +132,17 @@ jobs:
           cd BazaarCore
           uppbuilder TabbedTerminalExample -m ${{ matrix.bm }} -v
 
+      - name: Build & Run FtpCheck (${{ matrix.bm }})
+        run: |
+          cd BazaarCore
+          uppbuilder tests/FtpCheck -m ${{ matrix.bm }} -v
+          ./bin/FtpCheck
+
+      - name: Build FtpBrowserExample (${{ matrix.bm }})
+        run: |
+          cd BazaarCore
+          uppbuilder examples/FtpBrowserExample -m ${{ matrix.bm }} -v
+
   build-windows:
     name: Windows (windows-latest - MSVC)
     runs-on: windows-latest
@@ -258,3 +269,16 @@ jobs:
         run: |
           cd BazaarCore
           uppbuilder.exe TabbedTerminalExample -m MSVS22x64 -v
+
+      - name: Build & Run FtpCheck (MSVC)
+        shell: cmd
+        run: |
+          cd BazaarCore
+          uppbuilder.exe tests/FtpCheck -m MSVS22x64 -v
+          bin\FtpCheck.exe
+
+      - name: Build FtpBrowserExample (MSVC)
+        shell: cmd
+        run: |
+          cd BazaarCore
+          uppbuilder.exe examples/FtpBrowserExample -m MSVS22x64 -v

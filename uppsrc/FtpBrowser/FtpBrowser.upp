@@ -1,0 +1,11 @@
+description "FTP GUI Browser Control\377";
+
+uses
+	Core,
+	CtrlLib,
+	Ftp;
+
+file
+	FtpBrowser.h,
+	FtpBrowser.cpp,
+	FtpBrowser.lay;
