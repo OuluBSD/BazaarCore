@@ -1,0 +1,13 @@
+description "DropGrid comprehensive unit tests\377";
+
+uses
+	CtrlLib,
+	GridCtrl,
+	DropGrid;
+
+file
+	AGENTS.md,
+	main.cpp;
+
+mainconfig
+	"" = "GUI";

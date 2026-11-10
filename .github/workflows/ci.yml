@@ -143,6 +143,26 @@ jobs:
           cd BazaarCore
           uppbuilder examples/FtpBrowserExample -m ${{ matrix.bm }} -v
 
+      - name: Build & Run DropGridCheck (${{ matrix.bm }})
+        run: |
+          cd BazaarCore
+          uppbuilder tests/DropGridCheck -m ${{ matrix.bm }} -v
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            xvfb-run -a ./bin/DropGridCheck
+          else
+            ./bin/DropGridCheck
+          fi
+
+      - name: Build & Test DropGridExample (${{ matrix.bm }})
+        run: |
+          cd BazaarCore
+          uppbuilder examples/DropGridExample -m ${{ matrix.bm }} -v
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            xvfb-run -a ./bin/DropGridExample --test
+          else
+            ./bin/DropGridExample --test
+          fi
+
   build-windows:
     name: Windows (windows-latest - MSVC)
     runs-on: windows-latest
@@ -282,3 +302,17 @@ jobs:
         run: |
           cd BazaarCore
           uppbuilder.exe examples/FtpBrowserExample -m MSVS22x64 -v
+
+      - name: Build & Run DropGridCheck (MSVC)
+        shell: cmd
+        run: |
+          cd BazaarCore
+          uppbuilder.exe tests/DropGridCheck -m MSVS22x64 -v
+          bin\DropGridCheck.exe
+
+      - name: Build & Test DropGridExample (MSVC)
+        shell: cmd
+        run: |
+          cd BazaarCore
+          uppbuilder.exe examples/DropGridExample -m MSVS22x64 -v
+          bin\DropGridExample.exe --test

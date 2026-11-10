@@ -21,6 +21,7 @@ BazaarCore establishes a clean separation between pristine upstream U++ (`ultima
 - **Foundation Infrastructure (Tier 3)**:
   - `uppsrc/Terminal`: Embedded VT100 / XTerm terminal widget (libvterm-backed).
   - `uppsrc/PtyProcess`: Cross-platform pseudoterminal process execution.
+  - `uppsrc/DropGrid`: Multi-column popup grid dropdown control with key-value binding, search filtering, and multibutton frame.
   - `uppsrc/PlotCtrl` & `uppsrc/PlotLib`: Advanced 2D graphing and plotting controls with headless PNG export.
   - `uppsrc/Ftp` & `uppsrc/FtpBrowser`: Modular headless FTP client/server engine (`Ftp`) and GUI browser component (`FtpBrowser`).
   - `uppsrc/QtfReader`: Text extraction engine for U++ QTF formatted documents.
