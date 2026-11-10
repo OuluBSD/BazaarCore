@@ -1,0 +1,10 @@
+description "FTP client and server core engine\377";
+
+uses
+	Core;
+
+file
+	Ftp.h,
+	Ftp.cpp,
+	FtpServer.h,
+	FtpServer.cpp;

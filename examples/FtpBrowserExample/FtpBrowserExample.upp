@@ -1,0 +1,12 @@
+description "FTP GUI Browser Demonstration\377";
+
+uses
+	CtrlLib,
+	Ftp,
+	FtpBrowser;
+
+file
+	main.cpp;
+
+mainconfig
+	"" = "GUI";

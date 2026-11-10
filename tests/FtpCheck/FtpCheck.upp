@@ -1,0 +1,11 @@
+description "FTP core test harness\377";
+
+uses
+	Core,
+	Ftp;
+
+file
+	main.cpp;
+
+mainconfig
+	"" = "";
