@@ -122,6 +122,8 @@ public:
 
 	String GetHeader(const char *s) const              { return hdr[s]; }
 	String GetMethod() const                           { return hdr.GetMethod(); }
+	// The raw request target as sent: path, then the query string, percent-encoded.
+	String GetRequestURI() const                       { return hdr.GetURI(); }
 	int    GetLength() const                           { return atoi(GetHeader("content-length")); }
 	String GetPeerAddr() const;
 
