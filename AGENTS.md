@@ -13,5 +13,6 @@
 - `uppsrc/Terminal`, `PtyProcess`: Developer console infrastructure.
 - `uppsrc/ByteVM`: Dialect VM (Python / JS / Bytecode).
 - `uppsrc/Docking`: Desktop docking layout.
+- `uppsrc/DropGrid`: Popup Grid dropdown widget.
 - `uppsrc/Manager`: Project tracking engine.
 - `uppsrc/Skylark`, `AMP`, `Turtle`, `VirtualGui`: Headless services and virtual GUI.
