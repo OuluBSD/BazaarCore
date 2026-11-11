@@ -16,3 +16,12 @@
 - `uppsrc/DropGrid`: Popup Grid dropdown widget.
 - `uppsrc/Manager`: Project tracking engine.
 - `uppsrc/Skylark`, `AMP`, `Turtle`, `VirtualGui`: Headless services and virtual GUI.
+
+## Staged Upstream Assemblies
+- `patched-uppsrc/` / `applied-patches/`: Pristine upstream `uppsrc` with surgical hooks and restructured `Ctrl/Core` & `Ctrl/Lib`.
+- `applied-reference/`: 200+ modernized reference packages (`reference/*`).
+- `applied-tutorial/`: 55+ modernized tutorial packages (`tutorial/*`).
+- `applied-examples/`: 40+ modernized demonstration applications (`examples/*`).
+- `applied-upptst/`: 190+ modernized interactive/regression test suites (`upptst/*`).
+- `applied-autotest/`: 200+ modernized automated unit test suites (`autotest/*`).
+All assemblies can be materialized via `uppbuilder materialize all`. All `applied-*/` and `patched-*` are git-ignored.
