@@ -38,14 +38,28 @@ BazaarCore establishes a clean separation between pristine upstream U++ (`ultima
 
 ## Assembly Materialization
 
-BazaarCore uses **`uppbuilder`** (`OuluBSD/UppBuilder`) to materialize the staged base assembly (`patched-uppsrc/`):
+BazaarCore uses **`uppbuilder`** (`OuluBSD/UppBuilder`) to materialize the staged assemblies from upstream:
 ```bash
-# Materialize patched-uppsrc assembly:
+# Materialize core patched-uppsrc assembly:
 uppbuilder --apply-patches -v
 
-# Build a package using BazaarCore:
-uppbuilder uppsrc/Manager -m CLANG
+# Materialize all upstream assemblies (uppsrc, reference, tutorial, examples, upptst, autotest):
+uppbuilder materialize all
+
+# Build upstream examples or tutorials directly:
+uppbuilder examples/Bombs
+uppbuilder reference/ArrayCtrl
+uppbuilder tutorial/Gui01
+uppbuilder autotest/Bits
 ```
+
+### Staged Upstream Assemblies (`applied-*`)
+- **`patched-uppsrc/`** / **`applied-patches/`**: Pristine upstream `uppsrc` with surgical hooks and restructured `Ctrl/Core` & `Ctrl/Lib`.
+- **`applied-reference/`**: 200+ modernized upstream reference packages (`reference/*`).
+- **`applied-tutorial/`**: 55+ modernized upstream tutorial packages (`tutorial/*`).
+- **`applied-examples/`**: 40+ modernized upstream demonstration applications (`examples/*`).
+- **`applied-upptst/`**: 190+ modernized upstream interactive/regression test suites (`upptst/*`).
+- **`applied-autotest/`**: 200+ modernized upstream automated unit test suites (`autotest/*`).
 
 ### Global Configuration (`~/.config/uppbuilder/config.json`)
 ```json
