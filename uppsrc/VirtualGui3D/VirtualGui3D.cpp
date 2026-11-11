@@ -1,3 +1,8 @@
 #include "VirtualGui3D.h"
 
-// at least one empty .cpp file is required
+NAMESPACE_UPP
+
+VirtualGui3D* VirtualGui3DPtr = nullptr;
+
+END_UPP_NAMESPACE
+
