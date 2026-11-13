@@ -1,0 +1,10 @@
+String GetCommandLineArgValue(const char *name, const String& def = String());
+int    GetCommandLineArgInt(const char *name, int def = 0);
+String GetDataDirectory();
+String GetDataDirectoryFile(String file);
+String GetMluiServerAddress();
+void   SetMluiServerAddress__(const String& address);
+void   SetMluiRuntimeStarter(void (*fn)());
+void   AppStartMluiRuntime__();
+String FindLocalFile(String filename);
+void   AddLocalFileDirectory(String dir);

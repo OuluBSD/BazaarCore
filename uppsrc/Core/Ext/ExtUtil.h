@@ -24,8 +24,6 @@ struct Visitor;
 using Vis = Visitor;
 
 
-String GetDataDirectory();
-String GetDataDirectoryFile(String file);
 
 /*
 	Heapless Copying
@@ -51,11 +49,6 @@ inline void CopyHeaplessMat(const T& from, T& to) {
 			to0[i] = from0[i];
 	}
 }
-
-inline String HexStr(int i) { return Format("0x%X", i); }
-inline String HexStr64(int64 i) { return Format("0x%X", i); }
-inline String HexStrPtr(void* i) { return Format("0x%X", (int64)i); }
-template <class T> String HexStrPtr(const T* o) { return HexStrPtr((void*)o); }
 
 inline void VectorAdd(const Vector<double>& from, Vector<double>& to) {
 	ASSERT(from.GetCount() == to.GetCount());

@@ -1,7 +1,7 @@
 #ifndef _Core_MathNumeric_Math_h_
 #define _Core_MathNumeric_Math_h_
 
-inline bool IsClose(double a, double b, double epsilon = 1e-6) {
+inline bool IsClose(double a, double b, double epsilon) {
 	return fabs(a - b) <= epsilon;
 }
 

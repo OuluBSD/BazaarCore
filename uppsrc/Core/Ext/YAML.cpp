@@ -968,6 +968,16 @@ String AsYAML(const Value& v, bool pretty)
 	return AsYAML(v, String(), pretty);
 }
 
+String YamlizeValue(const Value& value, bool pretty)
+{
+	return AsYAML(value, pretty);
+}
+
+Value ParseYamlValue(const String& yaml)
+{
+	return ParseYAML(yaml);
+}
+
 template<> void Yamlize(YamlIO& io, double& var)
 {
 	if(io.IsLoading()) {
