@@ -70,23 +70,53 @@ diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/s
  file
  	Core.h options(BUILDER_OPTION) PCH,
  	config.h,
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/config.h applied-patches/Core/config.h
+--- a/config.h	2026-10-31 17:16:38.859507700 +0200
++++ b/config.h	2026-10-31 14:23:25.720223700 +0200
+@@ -214,4 +214,8 @@
+ 
+ #define WCHAR32 1 // this version of U++ has 32 bit wchar
+ 
+-#endif
++#if PLATFORM_POSIX && defined flagGUI
++	#define PLATFORM_POSIX_DESKTOP 1
++#endif
++
++#endif
 diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Heap.h applied-patches/Core/Heap.h
 --- a/Heap.h	2026-03-18 23:06:21.331714900 +0200
-+++ b/Heap.h	2026-11-05 00:33:10.716525700 +0200
-@@ -54,11 +54,13 @@
- #ifdef HEAPDBG
- void  MemoryIgnoreLeaksBegin();
- void  MemoryIgnoreLeaksEnd();
-+extern bool NoMemoryLeaksCheck;
++++ b/Heap.h	2026-10-31 14:23:25.695223700 +0200
+@@ -14,6 +14,9 @@
+ 	UPP_HEAP_MINBLOCK = 32,
+ };
  
- void  MemoryCheckDebug();
- #else
- inline void  MemoryIgnoreLeaksBegin() {}
- inline void  MemoryIgnoreLeaksEnd() {}
-+extern bool NoMemoryLeaksCheck;
++void TimingMemoryAllocHook(size_t size);
++void TimingMemoryFreeHook(size_t size);
++
+ #ifdef UPP_HEAP
  
- inline void  MemoryCheckDebug() {}
- #endif
+ void *MemoryAllocPermanent(size_t size);
+@@ -134,13 +137,13 @@
+ inline MemoryOptions::~MemoryOptions() {}
+ 
+ inline void  *MemoryAllocPermanent(size_t size)                { return malloc(size); }
+-inline void  *MemoryAlloc(size_t size)     { return malloc(size); }
+-inline void  *MemoryAllocSz(size_t &size)  { return malloc(size); }
+-inline void   MemoryFree(void *p)          { free(p); }
+-inline void  *MemoryAlloc32()              { return malloc(32); }
+-inline void  *MemoryAlloc48()              { return malloc(48); }
+-inline void   MemoryFree32(void *ptr)      { free(ptr); }
+-inline void   MemoryFree48(void *ptr)      { free(ptr); }
++inline void  *MemoryAlloc(size_t size)     { void *p = malloc(size); if(p) TimingMemoryAllocHook(size); return p; }
++inline void  *MemoryAllocSz(size_t &size)  { void *p = malloc(size); if(p) TimingMemoryAllocHook(size); return p; }
++inline void   MemoryFree(void *p)          { if(p) TimingMemoryFreeHook(0); free(p); }
++inline void  *MemoryAlloc32()              { void *p = malloc(32); if(p) TimingMemoryAllocHook(32); return p; }
++inline void  *MemoryAlloc48()              { void *p = malloc(48); if(p) TimingMemoryAllocHook(48); return p; }
++inline void   MemoryFree32(void *ptr)      { if(ptr) TimingMemoryFreeHook(32); free(ptr); }
++inline void   MemoryFree48(void *ptr)      { if(ptr) TimingMemoryFreeHook(48); free(ptr); }
+ inline void   MemoryInitDiagnostics()      {}
+ inline void   MemoryCheck() {}
+ inline void   MemoryCheckDebug() {}
 diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/ValueUtil.h applied-patches/Core/ValueUtil.h
 --- a/ValueUtil.h	2024-05-09 10:31:07.803963800 +0300
 +++ b/ValueUtil.h	2026-11-05 00:33:10.716525700 +0200
@@ -103,3 +133,217 @@ diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/s
  
  	Value& GetAdd(const Value& key)                  { return UnShare().GetAdd(key); }
  	Value& operator()(const Value& key)              { return GetAdd(key); }
+
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/String.h applied-patches/Core/String.h
+--- a/String.h	2026-03-14 17:37:18.807909800 +0200
++++ b/String.h	2026-10-31 14:23:25.712223600 +0200
+@@ -42,6 +42,7 @@
+ 	void Clear()                                              { B::Free(); B::Zero(); }
+ 	int  GetLength() const                                    { return B::GetCount(); }
+ 	bool IsEmpty() const                                      { return B::GetCount() == 0; }
++	bool Is() const                                           { return B::GetCount() != 0; }
+ 
+ 	const tchar *End() const                                  { return B::Begin() + GetLength(); }
+ 	const tchar *end() const                                  { return End(); }
+@@ -374,6 +375,7 @@
+ 	const String& operator+=(const String& s)              { Cat(s); return *this; }
+ 
+ 	String& operator=(const char *s);
++	String& operator=(const Nuller&)                       { Clear(); return *this; }
+ 	String& operator=(const String& s)                     { String0::Assign(s); return *this; }
+ 	String& operator=(String&& s)                          { if(this != &s) { Free(); Pick0(pick(s)); } return *this; }
+ 	String& operator=(StringBuffer& b)                     { *this = String(b); return *this; }
+@@ -823,6 +825,7 @@
+ 
+ 	WString& operator=(const wchar *s);
+ 	WString& operator=(const WString& s)                    { if(this != &s) { WString0::FFree(); WString0::Set0(s); } return *this; }
++	WString& operator=(const Nuller& n)                     { Clear(); return *this; }
+ 	WString& operator=(WString&& s)                         { if(this != &s) { WString0::FFree(); WString0::Pick0(pick(s)); } return *this; }
+ 	WString& operator=(WStringBuffer& b)                    { *this = WString(b); return *this; }
+
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Color.h applied-patches/Core/Color.h
+--- a/Color.h	2025-06-15 18:04:36.438295900 +0300
++++ b/Color.h	2026-11-12 17:34:32.262048700 +0200
+@@ -88,7 +88,8 @@
+ 	static Color FromRaw(dword co)     { Color c; c.color = co; return c; }
+ 	static Color Special(int n)        { Color c; c.SetSpecial(n); return c; }
+ 	
+-	int  GetSpecial() const            { return color & SPECIAL ? color & 0x7fffffff : -1; }
++	int   GetSpecial() const;
++	Color Resolved() const;
+ 
+ #ifdef PLATFORM_WIN32
+ 	operator COLORREF() const          { return (COLORREF) Get(); }
+@@ -97,7 +98,6 @@
+ 	operator dword() const             { return Get(); }
+ #endif
+ 
+-	Color Resolved()                   { return FromRaw(Get()); }
+ 
+ private:
+ 	Color(int);
+@@ -105,6 +105,13 @@
+ };
+ 
++inline Stream& operator/(Stream& s, Color& c)
++{
++	if(s.IsStoring()) s.Put32le(c.GetRaw());
++	else c = Color::FromRaw(s.Get32le());
++	return s;
++}
++
+ struct SColor : Color { // this is supposed to be static / global
+ 	static void Refresh();
+ 	static void Write(Color c, Color val);
+
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Color.cpp applied-patches/Core/Color.cpp
+--- a/Color.cpp	2025-06-15 18:04:36.437795900 +0300
++++ b/Color.cpp	2026-11-12 17:34:32.263048700 +0200
+@@ -128,12 +128,35 @@
+ 	ASSERT((c.GetRaw() & SCOLOR) && ii >= 0 && ii < s_Max);
+ 	if(ii >= 0 && ii < s_Max) {
+ 		ASSERT(!s_color_fn[ii]);
+-		s_color[ii] = val.Resolved();
++		s_color[ii] = val.Resolved().GetRaw();
+ 	}
+ }
+ 
+ bool AColor_dark_mode__;
+ 
++int Color::GetSpecial() const
++{
++	if(color & SPECIAL)
++		return color & 0x7fffffff;
++	if(color & SCOLOR) {
++		dword val = color & VBITS;
++		if(val < s_Max) {
++			dword r = s_color[val];
++			if(r & SPECIAL)
++				return r & 0x7fffffff;
++		}
++	}
++	return -1;
++}
++
++Color Color::Resolved() const
++{
++	int sp = GetSpecial();
++	if(sp >= 0)
++		return Special(sp);
++	return FromRaw(Get());
++}
++
+ dword Color::Get() const
+ {
+ 	if(IsNullInstance()) return 0;
+@@ -156,6 +179,8 @@
+ 				else
+ 					r = 0;
+ 			}
++			if(r & SPECIAL)
++				return 0;
+ 			return r;
+ 		}
+ 		return 0;
+ }
+
+diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Debug.cpp applied-patches/Core/Debug.cpp
+--- a/Debug.cpp	2026-10-31 17:16:38.853507600 +0200
++++ b/Debug.cpp	2026-10-31 14:23:25.693223300 +0200
+@@ -61,7 +61,7 @@
+ 	all_count = call_count = max_nesting = min_time = max_time = total_time = 0;
+ 	static bool init;
+ 	if(!init) {
+-#if defined(PLATFORM_WIN32) && !defined(PLATFORM_WINCE)
++#if defined(PLATFORM_WIN32) && !defined(PLATFORM_WINCE) && !defined(flagUWP)
+ 		timeBeginPeriod(1);
+ #endif
+ 		init = true;
+@@ -246,14 +246,17 @@
+ }
+ 
+ LONG __stdcall sDumpHandler(LPEXCEPTION_POINTERS ep) {
++#ifdef flagUWP
++	return 0;
++#else
+ 	SYSTEMTIME st;
+ 	GetLocalTime(&st);
+ 	if(!*crashfilename) {
+-		::GetModuleFileName(NULL, crashfilename, 512);
+-		wsprintf(crashfilename + strlen(crashfilename), ".%d-%02d-%02d-%02d-%02d-%02d%s.crash",
++		::GetModuleFileNameA(NULL, crashfilename, 512);
++		sprintf(crashfilename + strlen(crashfilename), ".%d-%02d-%02d-%02d-%02d-%02d%s.crash",
+ 			st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, appInfo);
+ 	}
+-	HANDLE file = CreateFile(crashfilename, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL,
++	HANDLE file = CreateFileA(crashfilename, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL,
+ 		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+ 	dword v = 1;
+ 	Put(file, v);
+@@ -264,7 +267,6 @@
+ 	for(int i = 0; i < (int)er->NumberParameters; i++)
+ 		Put(file, er->ExceptionInformation[i]);
+ 
+-#ifndef CPU_ARM
+ #ifdef CPU_AMD64
+ 	qword esp = ep->ContextRecord->Rsp;
+ #else
+@@ -272,7 +274,6 @@
+ #endif
+ 
+ 	WriteFile(file, (void *) esp, (dword)(sESP - esp), &v, NULL);
+-#endif
+ 	/*	dword base = ep->ContextRecord->Ebp;
+ 	for(;;) {
+ 		dword new_base = *(dword *)base;
+@@ -290,6 +291,7 @@
+ 	RLOG("============ CRASH ================================================");
+ 	RLOG(h);
+ 	return sPrev ? (*sPrev)(ep) : 0 /*EXCEPTION_CONTINUE_SEARCH*/;
++#endif
+ }
+ 
+ void InstallCrashDump(const char *info) {
+@@ -301,7 +303,7 @@
+ 	}
+ 	if(!sPrev) {
+ 		sPrev = SetUnhandledExceptionFilter(sDumpHandler);
+-#if defined(CPU_X86) && !defined(CPU_AMD64)
++#ifndef CPU_AMD64
+ #ifdef COMPILER_MSC
+ 		__asm mov sESP, esp
+ #else
+@@ -341,6 +343,32 @@
+ }
+ 
+ }
++
++#elif PLATFORM_WIN32 && COMPILER_MSC
++
++#include <windows.h>
++#include <verrsrc.h>
++#include <dbghelp.h>
++#include <stdio.h>
++
++#pragma comment(lib, "dbghelp.lib")
++
++namespace Upp {
++
++String CppDemangle(const char* decorated_name) {
++#ifdef flagUWP
++    return decorated_name;
++#else
++    char undecorated_name[1024];
++    int len = UnDecorateSymbolName(decorated_name, undecorated_name, 1024, 0x2800);
++    String str(undecorated_name, len);
++    if (str.Compare("class ") > 0) str = str.Mid(6);
++    if (str.Compare("struct ") > 0) str = str.Mid(7);
++    return str;
++#endif
++}
++
++}
+ 
+ #else
+ 
+ namespace Upp {

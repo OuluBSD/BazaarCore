@@ -1,5 +1,6 @@
 Value  ParseYAML(CParser& p, bool strict=true);
 Value  ParseYAML(const char *s, bool strict=true);
+Value  ParseYamlValue(const String& yaml);
 
 inline String AsYAML(int i)             { return IsNull(i) ? String("null") : AsString(i); }
 inline String AsYAML(double n)          { return IsNull(n) ? String("null") : AsString(n); }
@@ -13,6 +14,7 @@ String AsYAML(Date dt);
 
 String AsYAML(const Value& v, const String& indent, bool pretty);
 String AsYAML(const Value& v, bool pretty = false);
+String YamlizeValue(const Value& value, bool pretty = false);
 
 class YamlArray;
 

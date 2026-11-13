@@ -314,15 +314,6 @@ const Index<String>& Genders() {
 	return genders;
 }
 
-String GetDataDirectory() {
-	String s = GetEnv("UPP_MAIN__");
-	return s.GetCount() ? s : GetExeFolder();
-}
-
-String GetDataDirectoryFile(String file) {
-	return AppendFileName(GetDataDirectory(), file);
-}
-
 static String sSharedDirectory;
 
 void SetSharedDirectory(String d) {
