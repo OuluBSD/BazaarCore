@@ -1,21 +1,20 @@
-# Core/Ext Package Guide
+# Core/Ext
 
-## Purpose
-This package contains independent helpers and utility modules that were historically mixed into base Core. It remains the single `Core/Ext` package so BazaarCore can provide a patched foundation assembly while keeping Core changes explicit and reviewable.
+`Core/Ext` is BazaarCore's consolidated extension package for utilities that are independent of upstream Core internals. It stays a single subpackage for the current assembly layout; BazaarCore remains a patched foundation SDK rather than a normal consumer nest.
 
-## Structure
-- `Ext.h` is the package umbrella and includes Core before its extension headers.
-- Package headers are listed in `Ext.upp` and aggregated through `Ext.h`; avoid redundant includes in subheaders unless standalone inclusion is required.
-- Package implementation files include `Ext.h` first and keep exported APIs in `namespace Upp`.
-- Keep the package BLITZ-compatible and guard platform-specific behavior.
+## Package Map
 
-## Core Boundary
-- Prefer free functions and standalone classes here over adding more members or vtable slots to upstream Core classes.
-- Retain Core patches only for class-private state, Core lifecycle integration, or target-platform configuration that cannot be expressed in an extension.
-- Check upstream Core and the sibling extension headers before adding an API to avoid duplicate definitions.
-- Tracked patches under `patches/` are the source for generated `applied-patches` and `patched-uppsrc`. Do not hand-edit generated trees as source.
+- `Ext.h` is included by the patched Core umbrella and aggregates extension headers.
+- `Ext.upp` groups headers and BLITZ sources. Preserve current include order and namespace scope when editing `Ext.h`.
+- `AppExt` provides command-line, share/local-file, MLUI runtime, and data-directory wrappers.
+- `ThreadPool`, `ConvertExt`, `FormatExt`, `GeomExt`, and `PathExt` contain extracted helper APIs.
+- YAML and TOON support live here and must not require a `Value` YAML vtable hook in base Core.
+- `ExtUtil` is older code with overlapping utility names; check it before adding helpers.
+
+## Patch Relationship
+
+Tracked `patches/*.patch` files are the source used to materialize `applied-patches` and `patched-uppsrc`. The generated trees are outputs, not edit targets. `Core.upp` and `Core.h` intentionally connect base Core to this package; the remaining platform and compatibility changes must stay explicit in the surgical patch set.
 
 ## Validation
-- Build representative consumers through UppBuilder; compiling this subpackage alone is not sufficient.
-- Validate helper extraction with targeted runtime tests where possible.
-- Keep Task 29 and architecture notes aligned with the actual patch inventory.
+
+Build consumers through UppBuilder after materialization, including one headless downstream package. Test moved API behavior directly, especially YAML Value/container round trips and helper behavior that depends on platform flags. Keep Task 29 and the architecture note aligned with the exact retained patch inventory.
