@@ -11,7 +11,6 @@
 ## Subpackage Map
 - `uppsrc/Core/Ext`: The unified home for Core extras.
 - `uppsrc/Terminal`, `PtyProcess`: Developer console infrastructure.
-- `uppsrc/ByteVM`: Dialect VM (Python / JS / Bytecode).
 - `uppsrc/Docking`: Desktop docking layout.
 - `uppsrc/DropGrid`: Popup Grid dropdown widget.
 - `uppsrc/Manager`: Project tracking engine.
