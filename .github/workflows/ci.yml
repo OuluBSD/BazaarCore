@@ -206,12 +206,12 @@ jobs:
         run: |
           vcpkg install zlib:x64-windows xxhash:x64-windows lz4:x64-windows pcre2:x64-windows libpng:x64-windows libjpeg-turbo:x64-windows
           vcpkg integrate install
-          copy /y "C:\vcpkg\installed\x64-windows\lib\z.lib" "C:\vcpkg\installed\x64-windows\lib\zs.lib"
-          copy /y "C:\vcpkg\installed\x64-windows\lib\z.lib" "C:\vcpkg\installed\x64-windows\lib\libzs.lib"
-          if exist "C:\vcpkg\installed\x64-windows\debug\lib\zd.lib" (
-            copy /y "C:\vcpkg\installed\x64-windows\debug\lib\zd.lib" "C:\vcpkg\installed\x64-windows\debug\lib\zs.lib"
-            copy /y "C:\vcpkg\installed\x64-windows\debug\lib\zd.lib" "C:\vcpkg\installed\x64-windows\debug\lib\libzs.lib"
-            copy /y "C:\vcpkg\installed\x64-windows\debug\lib\zd.lib" "C:\vcpkg\installed\x64-windows\debug\lib\z.lib"
+          copy /y "C:\vcpkg\installed\x64-windows\lib\libz.lib" "C:\vcpkg\installed\x64-windows\lib\zs.lib"
+          copy /y "C:\vcpkg\installed\x64-windows\lib\libz.lib" "C:\vcpkg\installed\x64-windows\lib\libzs.lib"
+          if exist "C:\vcpkg\installed\x64-windows\debug\lib\libzd.lib" (
+            copy /y "C:\vcpkg\installed\x64-windows\debug\lib\libzd.lib" "C:\vcpkg\installed\x64-windows\debug\lib\zs.lib"
+            copy /y "C:\vcpkg\installed\x64-windows\debug\lib\libzd.lib" "C:\vcpkg\installed\x64-windows\debug\lib\libzs.lib"
+            copy /y "C:\vcpkg\installed\x64-windows\debug\lib\libzd.lib" "C:\vcpkg\installed\x64-windows\debug\lib\z.lib"
           )
           copy /y "C:\vcpkg\installed\x64-windows\lib\pcre2-8.lib" "C:\vcpkg\installed\x64-windows\lib\pcre2.lib"
           if exist "C:\vcpkg\installed\x64-windows\debug\lib\pcre2-8d.lib" (
