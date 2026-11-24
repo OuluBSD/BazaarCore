@@ -160,7 +160,7 @@ diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/s
 +	WString& operator=(const Nuller& n)                     { Clear(); return *this; }
  	WString& operator=(WString&& s)                         { if(this != &s) { WString0::FFree(); WString0::Pick0(pick(s)); } return *this; }
  	WString& operator=(WStringBuffer& b)                    { *this = WString(b); return *this; }
-
+ 
 diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Color.h applied-patches/Core/Color.h
 --- a/Color.h	2025-06-15 18:04:36.438295900 +0300
 +++ b/Color.h	2026-11-12 17:34:32.262048700 +0200
@@ -195,7 +195,7 @@ diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/s
  struct SColor : Color { // this is supposed to be static / global
  	static void Refresh();
  	static void Write(Color c, Color val);
-
+ 
 diff -uNr -x '*.o' -x '*.a' -x '*.so' -x '*.obj' -x '*.d' -x '*.upp.bak' /home/sblo/Dev/ultimatepp/uppsrc/Core/Color.cpp applied-patches/Core/Color.cpp
 --- a/Color.cpp	2025-06-15 18:04:36.437795900 +0300
 +++ b/Color.cpp	2026-11-12 17:34:32.263048700 +0200
